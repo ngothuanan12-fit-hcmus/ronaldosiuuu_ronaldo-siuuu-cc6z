@@ -149,8 +149,30 @@ npm test             # bộ test node:test (hiện chưa có tệp test nào)
 |---|---|---|---|
 | `PORT` | Không | `3000` | Cổng của máy chủ |
 
-Dự án **không cần khóa bí mật hay tệp `.env`** nào. [`.gitignore`](./.gitignore) đã chặn sẵn mọi
-dạng tệp môi trường, khóa, chứng chỉ và thông tin xác thực để không bao giờ có nguy cơ rò rỉ.
+**Để chạy sản phẩm, không cần khóa bí mật hay tệp `.env` nào.** [`.gitignore`](./.gitignore) đã
+chặn sẵn mọi dạng tệp môi trường, khóa, chứng chỉ và thông tin xác thực để không bao giờ có nguy
+cơ rò rỉ.
+
+#### Công cụ thiết kế (không cần để chạy sản phẩm)
+
+Repository có tệp [`.mcp.json.example`](./.mcp.json.example) khai báo một MCP server dùng lúc
+*phát triển* để sinh giao diện. Bản thật `.mcp.json` **nằm trong `.gitignore` và không bao giờ
+được commit**, vì trường `env` của nó chứa API key.
+
+Người muốn dùng công cụ đó sao chép tệp mẫu thành `.mcp.json`, rồi đặt khóa của mình theo một
+trong hai cách, **cả hai đều không đưa khóa vào repository**:
+
+```bash
+# Cách 1 — đặt biến môi trường rồi mới mở Claude Code (khuyến nghị, không ghi gì lên đĩa)
+$env:STITCH_API_KEY = "khoa-cua-ban"    # Windows PowerShell
+export STITCH_API_KEY="khoa-cua-ban"    # macOS / Linux / Git Bash
+```
+
+Cách 2: đặt trực tiếp vào `.mcp.json` — chấp nhận được vì tệp đó đã bị `.gitignore` chặn, nhưng
+khóa vẫn nằm dạng văn bản thường trên đĩa. Cách 1 an toàn hơn.
+
+Lưu ý: `stitch-mcp-server` là gói của **bên thứ ba**, không phải gói chính thức của Google, và
+khóa API sẽ được truyền vào gói này.
 
 ## 5. Mô tả cấu trúc thư mục
 

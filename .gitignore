@@ -132,6 +132,13 @@ _netrc
 *.tfstate.*
 .terraform/
 
+# Cấu hình MCP server: trường "env" chứa API key thật của công cụ thiết kế.
+# Bản mẫu .mcp.json.example được commit thay thế.
+.mcp.json
+mcp.json
+.cursor/mcp.json
+.vscode/mcp.json
+
 # CỐ Ý KHÔNG loại trừ: .npmrc.example, .nvmrc (không chứa bí mật)
 !.nvmrc
 !.npmrc.example

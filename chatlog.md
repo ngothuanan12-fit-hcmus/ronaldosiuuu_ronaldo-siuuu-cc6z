@@ -116,6 +116,7 @@ cột `Lượt sửa` trỏ tới lượt đã khắc phục.
 | E7 | #6–#17 | `AGENT` | **Timestamp trong chatlog bị lệch tới hơn 1 giờ.** Agent suy giờ từ *lịch trình kế hoạch* thay vì đọc đồng hồ hệ thống, nên mỗi lượt bị ghi muộn hơn thực tế. Lượt #17 ghi "≈15:20" trong khi commit thật là 15:09:34. Đây là lỗi nghiêm trọng vì ban tổ chức đối chiếu timestamp chatlog với lịch sử commit để phát hiện can thiệp thủ công | Thí sinh phát hiện và báo ở lượt #18. Agent xác minh bằng `Get-Date`, `git log --date=format:%H:%M:%S` và `LastWriteTime` của từng tệp | `thời gian thực tế đang bị lệch, xem xét lại thời gian và ghi lại lỗi vào chatlog` | Đã hiệu chỉnh timestamp của 10 lượt (#6, #7, #8, #10–#15, #17) theo mốc commit và mtime tệp thật. Từ lượt #18 trở đi, agent đọc đồng hồ hệ thống trước khi ghi mỗi lượt | #18 |
 | E8 | #17 | `REVIEWER` | **False negative trong `solve()`**: bước lọc sơ bộ loại người không đóng góp kỹ năng yêu cầu, nhưng những người đó vẫn có thể là người giúp đội đạt đủ `minTotalHours` → hệ thống báo **vô nghiệm sai** khi thực tế CÓ phương án. Nguy hiểm vì rơi đúng vào checkpoint 5 của video demo | `REVIEWER` đọc 5 tệp domain ở lượt #20 và chỉ ra, kèm dữ liệu tái tạo cụ thể | Thí sinh chuyển phát hiện của `REVIEWER` sang `AGENT` ở lượt #22 | Đã sửa: giữ nguyên tập thu hẹp để chạy nhanh, nhưng nếu không ra phương án nào thì **chạy lại trên tập đầy đủ** trước khi kết luận vô nghiệm. Kiểm chứng ca `Security≥2, quân số 2–3, ≥60h`: trước khi sửa báo vô nghiệm, sau khi sửa trả về 55 phương án (`retriedWithFullPool = true`) | #22 |
 | E9 | #22 | `AGENT` | **Agent tự làm hỏng encoding của `solver.js`**: dùng `Get-Content -Raw` (đọc theo ANSI trong PowerShell 5.1) rồi `Set-Content -Encoding UTF8` để sửa một chuỗi → toàn bộ tiếng Việt trong tệp biến thành mojibake (`Lõi` → `LÃµi`), tệp bị thêm BOM | Agent tự kiểm tra ngay sau lệnh: đọc lại tệp bằng `[IO.File]::ReadAllText(..., UTF8)` và khớp mẫu mojibake | Không cần prompt sửa — agent tự phát hiện và khôi phục | Khôi phục bằng cách encode chuỗi mojibake theo codepage 1252 rồi ghi lại dạng byte thô, bỏ BOM. `node --check` PASS, `try-solver.js` chạy lại đủ 8/8 ca biên. **Bài học: không dùng `Get-Content`/`Set-Content` cho tệp UTF-8 tiếng Việt, chỉ dùng công cụ Edit/Write** | #22 |
+| E10 | #27 | — (thí sinh) | **Sự cố bảo mật: API key thật của Google Stitch bị dán trực tiếp vào `.mcp.json`.** Tệp này nằm ở thư mục gốc và **không** bị `.gitignore` chặn tại thời điểm đó, nên chỉ cần một lệnh `git add -A` là khoá lên GitHub công khai — mất 20 điểm và lộ khoá thật | Agent nhận thông báo tệp thay đổi, đọc nội dung và thấy trường `env` chứa chuỗi khoá thật thay vì `${STITCH_API_KEY}` | Không cần prompt sửa — agent dừng việc đang làm và xử lý ngay | Xác minh khoá **chưa lọt vào commit nào**: `git log --all -- .mcp.json` rỗng và `git grep` trên toàn bộ `rev-list --all` không tìm thấy. Đã thêm `.mcp.json` (cùng `mcp.json`, `.cursor/mcp.json`, `.vscode/mcp.json`) vào `.gitignore`, tạo `.mcp.json.example` chỉ chứa placeholder để commit thay thế, cập nhật README. Quét lại mọi tệp đang theo dõi và sắp commit: sạch. **Khuyến nghị vẫn nên thu hồi và cấp lại khoá** vì khoá đã xuất hiện trong nội dung phiên chat mà thí sinh dự định chia sẻ link công khai làm bằng chứng | #27 |
 | E3 | #5 | `AGENT` | Script kiểm tra của agent in nhầm `IGNORED .env.example`, khiến tưởng tệp mẫu bị `.gitignore` chặn | Agent tự soát lại: `git check-ignore -v` in cả luật phủ định nên `if ($output)` bắt sai; kiểm lại bằng exit code | Không cần prompt sửa — agent tự đính chính trong cùng lượt | `.env.example` exit 1 (commit được), `.env` exit 0 (bị chặn). Không phải lỗi `.gitignore`, chỉ là lỗi cách đọc kết quả | #5 |
 
 ---
@@ -904,4 +905,40 @@ chưa xác nhận**. Nếu con số thật khác, sửa một dòng trong `submi
 
 ---
 
-<!-- Lượt tiếp theo: #27 -->
+### #27 — 16:32 — `AGENT` — ACCEPTED
+
+**Prompt:**
+> schema_version phải là 1.0 là đúng rồi, file của riêng dự án (.mcp.json nằm ở thư mục gốc của
+> project), API key mình sẽ tự thêm, đã có API key rồi
+
+**Kết quả:**
+
+**a) Xác minh trước khi viết, không đoán.** Hai điều agent đã tra cứu thật thay vì suy đoán:
+- Tài liệu Claude Code xác nhận `.mcp.json` hỗ trợ expansion `${VAR}` và `${VAR:-default}` trong
+  `command`, `args`, `env`, `url`.
+- Truy vấn npm registry: **không có gói MCP chính thức của Google cho Stitch**. Có ba gói bên
+  thứ ba: `stitch-mcp-server` v1.0.7, `stitch-mcp` v1.3.2, `stitch-mcp-auto` v1.2.2. Lấy cấu
+  hình thật từ README của `stitch-mcp-server` — biến môi trường là `STITCH_API_KEY`.
+
+**b) Tạo `.mcp.json`** dùng `${STITCH_API_KEY}` để khoá không phải nằm trong tệp.
+
+**c) ⚠️ SỰ CỐ BẢO MẬT — thí sinh dán API key thật vào `.mcp.json`.** Xem lỗi **E10** ở mục 3.
+Agent phát hiện ngay khi tệp thay đổi, kiểm tra và xác nhận **khoá chưa lọt vào commit nào**
+(`git log --all -- .mcp.json` rỗng, `git grep` trên toàn bộ `rev-list --all` không thấy).
+Xử lý: thêm `.mcp.json` vào `.gitignore`, tạo `.mcp.json.example` để commit thay thế, sửa README.
+Quét lại toàn bộ tệp đang theo dõi và tệp sắp commit: **không tệp nào chứa khoá**.
+
+**d) Cập nhật README** mục biến môi trường: phân biệt rõ khoá của *công cụ thiết kế* với khoá
+để *chạy sản phẩm* (sản phẩm không cần khoá nào), hướng dẫn hai cách đặt khoá an toàn, và cảnh
+báo `stitch-mcp-server` là gói bên thứ ba.
+
+**e) Xác nhận `schema_version = "1.0"` là đúng** theo thí sinh — không phải sửa gì.
+
+**Kiểm chứng:** `npm run check` vẫn **32 PASS / 0 FAIL**; `.mcp.json` exit 0 (bị chặn),
+`.mcp.json.example` exit 1 (commit được).
+
+**Commit:** _(chờ)_
+
+---
+
+<!-- Lượt tiếp theo: #28 -->

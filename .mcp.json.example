@@ -1,0 +1,15 @@
+{
+  "_huong_dan": "Sao chép tệp này thành .mcp.json rồi đặt khoá thật. .mcp.json đã nằm trong .gitignore nên không bao giờ bị commit. An toàn hơn nữa: giữ nguyên ${STITCH_API_KEY} bên dưới và đặt khoá vào biến môi trường trước khi mở Claude Code, khi đó trên đĩa không có tệp nào chứa khoá.",
+  "_canh_bao": "Không bao giờ đặt khoá thật vào tệp .example này. Tệp này ĐƯỢC commit lên repository công khai.",
+  "_ghi_chu_ve_goi": "stitch-mcp-server là gói của bên thứ ba, không phải gói chính thức của Google. Khoá API của bạn sẽ được truyền vào gói này. Các lựa chọn thay thế: stitch-mcp, stitch-mcp-auto.",
+
+  "mcpServers": {
+    "stitch": {
+      "command": "npx",
+      "args": ["-y", "stitch-mcp-server@latest"],
+      "env": {
+        "STITCH_API_KEY": "${STITCH_API_KEY}"
+      }
+    }
+  }
+}
