@@ -22,7 +22,7 @@ Múi giờ dùng cho mọi timestamp trong tệp này: **UTC+07:00**
   |---|---|---|---|
   | `AGENT` | Claude Code (Opus 5) | Agent chính, sinh toàn bộ mã nguồn | IDE (VS Code) |
   | `REVIEWER` | AI phụ #1 | Review code, soát lỗi | Browser |
-  | `DOCS` | AI phụ #2 | Soạn tài liệu, README, slide | Browser |
+  | `DOCS` | Claude Opus 4.6 (Thinking) — AI phụ #2 | Soạn tài liệu, README, slide, kịch bản video | IDE (VS Code) |
 
   Nếu dùng thêm AI khác, khai báo thêm một dòng vào bảng này trước khi ghi lượt đầu tiên của nó.
 
@@ -110,6 +110,9 @@ cột `Lượt sửa` trỏ tới lượt đã khắc phục.
 |---|---|---|---|---|---|---|---|
 | E1 | #4 | `AGENT` | Tạo thư mục mã nguồn tên `src/` trong khi hệ thống chấm bắt buộc `source/` tại thư mục gốc. Đây là lỗi pass/fail: cấu trúc khi đó đang 0/20 điểm | Thí sinh gửi prompt chấm công khai ở lượt #6; agent đối chiếu và tự phát hiện. Không có công cụ nào báo lỗi vì code vẫn chạy bình thường | Không cần prompt sửa riêng — agent tự nêu ngay khi phát hiện; thí sinh xác nhận ở lượt #7 | Đã đổi tên `src/` → `source/`, cập nhật `package.json` và `submission.json`. Kiểm chứng lại: 5 mục bắt buộc PASS | #7 |
 | E2 | #8 | `AGENT` | `submission.json` do agent tự thiết kế ở lượt #4 dùng cấu trúc lồng (`team.name`, `structure.sourceDirectory`) không khớp schema phẳng mà thí sinh nêu (`team_name`, `login`, `source_paths`, `dependency_files`, `schema_version`) | `scripts/check-structure.js` chạy lần đầu báo FAIL 8/31, chỉ đúng 5 trường thiếu và 3 lỗi dây chuyền | Chưa sửa — agent nêu mâu thuẫn và **hỏi trước** thay vì tự đổi, vì prompt chấm công khai nói rõ "không tự suy đoán field nghiệp vụ khi chưa có schema riêng" | **Đang treo.** Cần thí sinh xác nhận schema nào đúng và giá trị thật của `schema_version` | _(chưa)_ |
+| E4 | #17 | `AGENT` | Công thức "độ dư thừa phủ kỹ năng" ban đầu chỉ chấm đạt/không đạt (có ≥2 người là 1 điểm), khiến **cả 3 phương án đứng đầu bằng đúng 80.47 điểm** — báo cáo giải thích không nói được vì sao #1 hơn #2 | Chạy `node scripts/try-solver.js`, đọc kết quả kịch bản "Dễ": ba đội chỉ khác nhau đúng một người mà cùng điểm | Không cần prompt sửa — agent tự phát hiện khi đọc output và sửa trong cùng lượt | Đổi sang thang phân bậc, kết hợp lấy trung bình 2 mức cao nhất thay vì 1 | #17 |
+| E5 | #17 | `AGENT` | Bản vá E4 lần 1 (thang tuyến tính `(count-1)/2`) gây **hồi quy**: thuật toán bắt đầu ưu tiên dồn 2 người dự phòng vào một kỹ năng thay vì phủ đều — phương án đứng đầu có Backend **không có dự phòng nào** | Chạy lại `try-solver.js`, thấy phương án #1 hiển thị "Backend: KHÔNG có dự phòng" mà vẫn xếp trên | Không cần prompt sửa — agent tự phát hiện ngay ở lần chạy kế tiếp | Đổi sang thang 0 / 0.8 / 1.0 có bước nhảy lớn ở người dự phòng đầu tiên → phủ đều luôn thắng dồn cục bộ | #17 |
+| E6 | #17 | `AGENT` | Khi `requiredSkills` rỗng, bước lọc sơ bộ loại sạch ứng viên (vì không ai "đóng góp kỹ năng yêu cầu") → hệ thống báo vô nghiệm sai, đáng lẽ mọi đội hình đều hợp lệ | Ca biên "Không khai báo năng lực nào" trong `try-solver.js` trả về "vô nghiệm" thay vì "ok" | Không cần prompt sửa — ca biên do chính agent viết đã bắt được | Thêm điều kiện: chưa khai báo năng lực nào thì không có căn cứ loại ai, giữ nguyên toàn bộ pool | #17 |
 | E3 | #5 | `AGENT` | Script kiểm tra của agent in nhầm `IGNORED .env.example`, khiến tưởng tệp mẫu bị `.gitignore` chặn | Agent tự soát lại: `git check-ignore -v` in cả luật phủ định nên `if ($output)` bắt sai; kiểm lại bằng exit code | Không cần prompt sửa — agent tự đính chính trong cùng lượt | `.env.example` exit 1 (commit được), `.env` exit 0 (bị chặn). Không phải lỗi `.gitignore`, chỉ là lỗi cách đọc kết quả | #5 |
 
 ---
@@ -485,4 +488,54 @@ có tiêu chí nghiệm thu và lệnh kiểm tra, kèm phân công việc song 
 
 ---
 
-<!-- Lượt tiếp theo: #16 -->
+### #16 — 15:00 — `DOCS` — NO-CODE
+
+**Prompt:**
+> Tôi đang thi hackathon SPD Challenge 2026, sản phẩm tên SquadFit: công cụ web giúp ban tổ chức hackathon sinh viên ghép đội tối ưu từ kho 24 ứng viên, dựa trên ràng buộc đa biến (phủ 100% kỹ năng yêu cầu, giới hạn quân số, tổng giờ cam kết tối thiểu, không trùng người). Backend Node.js thuần chạy thuật toán duyệt tổ hợp có cắt tỉa, frontend HTML/CSS/JS tĩnh, không dùng thư viện ngoài nào.
+>
+> Hãy viết cho tôi, tiếng Việt:
+>
+> Đoạn mô tả bối cảnh 3–4 câu để hiển thị ngay trên giao diện, giải thích người dùng là ai và họ đang giải quyết vấn đề gì.
+> Nội dung mục "Bài toán" và "Hạn chế đã biết / Hướng phát triển" cho README.
+> Kịch bản quay video demo 3 phút, chia theo 5 checkpoint: (1) khai báo mục tiêu và ràng buộc, (2) đánh giá lọc ứng viên, (3) đề xuất đội hình thành công + báo cáo giải thích, (4) thay đổi điều kiện động, (5) trường hợp vô nghiệm và cách báo lỗi. Ghi rõ mỗi checkpoint bao nhiêu giây và người quay thao tác gì.
+> Chỉ trả về văn bản, không viết code.
+> nhớ ghi lại chatlog
+
+**Kết quả:**
+- **Đoạn mô tả bối cảnh** (4 câu): giới thiệu người dùng là ban tổ chức hackathon, bài toán ghép 24 ứng viên lẻ thành đội phủ 100% kỹ năng, và SquadFit giải quyết bằng cách duyệt tổ hợp + giải thích.
+- **Mục "Bài toán"**: giữ nguyên 3 vấn đề cốt lõi, bổ sung số liệu cụ thể (24 ứng viên, 12 kỹ năng, 3 mức thành thạo), nêu rõ quy mô tổ hợp hàng chục nghìn, nhấn mạnh không thể duyệt tay.
+- **Mục "Hạn chế đã biết"**: 6 hạn chế kèm lý do (không persistence, chỉ ghép 1 đội, kho cố định, chưa đủ test, giới hạn thuật toán, không xác thực). 6 hướng phát triển (ghép hàng loạt, persistence, CRUD ứng viên, ILP, test, xuất PDF/CSV).
+- **Kịch bản video 3 phút**: 5 checkpoint + mở đầu + kết, phân bổ 15+35+30+40+30+25+5 = 180 giây. Mỗi checkpoint ghi rõ thao tác, kết quả hiển thị, và lời dẫn gợi ý. Ghi chú dùng kịch bản mẫu từ `scenarios.js`.
+- **Không tạo tệp mã nguồn nào.**
+
+**Commit:** — (không sinh commit; lượt soạn văn bản, không sinh mã)
+
+---
+
+### #17 — ≈15:20 — `AGENT` — ACCEPTED
+
+**Prompt:**
+> chạy G2
+
+**Kết quả:** Thực hiện giai đoạn G2 — lõi thuật toán. Tạo 6 tệp:
+- `source/domain/candidate-utils.js` — hàm thuần dùng chung, không phụ thuộc HTTP.
+- `source/domain/solver.js` — 4 bước: lọc sơ bộ, kiểm tra khả thi sớm, duyệt tổ hợp với
+  **4 tầng cắt tỉa**, chấm điểm và xếp hạng. Chặn cứng `MAX_COMBINATIONS = 200.000` và
+  `MAX_TEAM_SIZE = 8`. Có `normalizeProject()` kẹp mọi đầu vào bất thường về khoảng an toàn.
+- `source/domain/scoring.js` — 5 thành phần thang 100 + `explainDifference()` sinh câu so sánh.
+- `source/domain/assignment.js` — phân vai chính/dự phòng, ưu tiên kỹ năng khan hiếm trước.
+- `source/domain/diagnosis.js` — chẩn đoán vô nghiệm 3 khối.
+- `scripts/try-solver.js` — chạy cả 3 kịch bản + 8 ca biên từ dòng lệnh, **không cần server**;
+  đây cũng là bằng chứng cho quyết định kiến trúc "domain tách tuyệt đối khỏi HTTP".
+
+**Ba lỗi tự phát hiện và sửa ngay trong lượt** — xem E4, E5, E6 ở mục 3.
+
+**Kết quả chạy:** kịch bản Dễ 6.610 tổ hợp / 4.914 phương án hợp lệ / 94ms; Khó 68 tổ hợp /
+3 phương án / 1.2ms; Vô nghiệm phát hiện ngay ở bước khả thi sớm, 0 tổ hợp / 0.4ms.
+8/8 ca biên PASS — không ca nào ném lỗi, treo, hay trả `undefined`.
+
+**Commit:** _(chờ)_
+
+---
+
+<!-- Lượt tiếp theo: #18 -->
