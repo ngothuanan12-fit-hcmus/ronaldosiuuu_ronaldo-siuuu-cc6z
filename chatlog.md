@@ -177,6 +177,7 @@ cột `Lượt sửa` trỏ tới lượt đã khắc phục.
 | E11 | #32 | `STITCH` | **Bản Tailwind xuất từ Stitch được đưa thẳng vào `source/public/`, thay ba tệp `index.html`, `app.js`, `styles.css`.** Bản đó không chạy được với backend: (1) nạp Tailwind qua CDN và hai `@import` Google Fonts → phá tiêu chí 0 phụ thuộc, vỡ giao diện khi mất mạng; (2) `app.js` đọc `meta.skills` và `meta.levels` nhưng `GET /api/meta` trả về `weights`, `componentLabels`, `limits` → ném lỗi ngay lúc khởi động, hiện alert "Không thể kết nối máy chủ"; (3) mất toàn bộ tích hợp `/api/projects`, không còn danh sách dự án, tạo, sửa, xoá, không còn hash routing; (4) sidebar có hai mục là link chết `javascript:void(0)` | Agent nhận thông báo tệp thay đổi, đọc lại cả ba tệp và đối chiếu với hợp đồng API thật của dự án | `thêm sidebar và header giống trong thư mục stitch... cho phù hợp với dự án` | Sửa bản Tailwind cho khớp backend là viết lại lần thứ tư, không kịp trong 36 phút còn lại. Đã **cất bản Tailwind vào thư mục tạm của phiên (không xoá)** và khôi phục ba tệp từ commit `927d36c`, rồi thêm header lên bản đang chạy được. **Bài học: sản phẩm của công cụ sinh giao diện là bản phác thảo thị giác, không phải mã chạy được — phải ráp lớp trình bày vào mã hiện có, không thay thế mã hiện có** | #32 |
 | E12 | #5 | `AGENT` | **`.gitignore` nuốt mất mã nguồn: `source/data/` chưa từng được commit trong suốt hơn 3 giờ.** Luật `data/` ở dòng 65 (viết để chặn thư mục cơ sở dữ liệu của Prisma/Drizzle) khớp với **mọi** thư mục tên `data` ở mọi cấp, nên đã loại luôn ba mô-đun mã nguồn `candidates.js` (24 hồ sơ), `skills.js` (12 kỹ năng), `scenarios.js` (3 kịch bản). Hậu quả: **bản clone từ GitHub không chạy được** — máy chủ ném lỗi thiếu mô-đun ngay khi khởi động. Đây là lỗi nghiêm trọng nhất phiên, vì bài chấm dựa trên repository chứ không dựa trên máy của thí sinh | **Thí sinh phát hiện và báo ở lượt #37.** Không công cụ nào bắt được: `git status` im lặng (tệp bị ignore thì không hiện là untracked), `check-structure.js` đọc **đĩa** nên luôn PASS 32/32, và mọi lần chạy thử đều dùng thư mục làm việc — nơi tệp vẫn tồn tại đầy đủ. Điểm mù: **toàn bộ khâu kiểm chứng đều chạy trên bản local, không lần nào trên bản clone** | `kiểm tra lại trạng thái commit có đủ file chưa, hiện tại đang thiếu file trong thư mục data chưa push` | Thêm ngoại lệ `!source/data/` kèm chú thích giải thích vì sao. Kiểm chứng bằng **quy trình mới, mạnh hơn**: (1) `git check-ignore` từng tệp — cả 3 đều thoát ignore; (2) đối chiếu toàn bộ tệp mã trên đĩa với `git ls-files` — chỉ còn `.mcp.json` nằm ngoài, đúng chủ ý; (3) **clone sạch sang thư mục khác rồi chạy thật**: `try-solver` PASS, `try-api` **45/45 PASS**, `GET /api/candidates` trả 200 kèm dữ liệu ứng viên, trang chủ 200. Remote sau khi sửa có đủ 31 tệp. **Bài học: kiểm tra bằng bản clone sạch, không bao giờ chỉ bằng thư mục đang làm việc** | #37 |
 | E13 | #24 | `AGENT` | **Trình lắng nghe sự kiện chồng chất khiến nút "Xoá" chạy nhiều lần.** `#view` là phần tử cố định, chuyển trang chỉ ghi đè `innerHTML`; nhưng `bindDashboard` và `bindProjectForm` gắn `addEventListener` lên **chính `#view`** (uỷ quyền sự kiện cho phần tử con), nên mỗi lần render lại là thêm một trình lắng nghe mà không cái nào bị gỡ. Sau N lần vào bảng điều khiển, một cú nhấp "Xoá" chạy **N lần**: hộp xác nhận bật N lần rồi N yêu cầu `DELETE` cùng bay đi — cái đầu được 200, các cái sau 404 → hiện `Không xoá được` dù dự án **đã bị xoá thật**. Nút xoá dòng kỹ năng trong form cũng dính lỗi này | **Thí sinh phát hiện và báo ở lượt #38.** Không bộ kiểm thử nào bắt được vì cả `try:api` lẫn `try:solver` đều chạy phía máy chủ; lỗi nằm hoàn toàn trong vòng đời DOM của trình duyệt. Agent khoanh vùng bằng cách gọi thẳng API: `DELETE` lần 1 trả 200, lần 2 trả 404, danh sách còn rỗng → backend đúng, lỗi ở frontend | `thao tác xóa hiện đang bị lỗi, bạn hãy kiểm tra lại` | Thêm `resetView()` trong `app.js`: trước mỗi lần render, thay `#view` bằng `cloneNode(false)` — bản sao giữ nguyên thuộc tính nhưng **không mang theo trình lắng nghe nào**; biến `view` đổi từ `const` sang `let`. Sửa một chỗ, chặn cả lớp lỗi cho mọi `bind*` hiện có lẫn về sau. Kiểm chứng bằng mô hình DOM tối giản mô phỏng `addEventListener` tích luỹ và `cloneNode`: **trước khi sửa 1/2/3/5 lần render → handler chạy 1/2/3/5 lần; sau khi sửa → luôn đúng 1 lần**. Kèm `try:api` 45/45 PASS, `check-structure` 32/32, 0 tham chiếu mạng ngoài, bản `app.js` máy chủ phục vụ giống hệt đĩa từng byte | #38 |
+| E14 | #22 | `AGENT` | **Bộ lọc kho ứng viên rò rỉ sang dự án khác.** `workspace.js` giữ state ở cấp mô-đun; `renderWorkspace` đặt lại `project`, `candidates`, `disabled`, `mustInclude`, `mustExclude`, `activePlan`, `lastResult` — nhưng **bỏ sót `filterText` và `filterSkill`**. Trong khi đó ô `#search` được vẽ ra **không có thuộc tính `value`** và dropdown luôn về `Mọi kỹ năng`. Hậu quả: lọc ở dự án A rồi mở dự án B thì kho ứng viên **vẫn bị lọc theo tiêu chí cũ mà giao diện không hiện dấu vết nào** — trông y như dữ liệu bị thiếu người. Nguy hiểm ở chỗ nó có thể làm một ca đáng lẽ có nghiệm hoá thành vô nghiệm ngay giữa lúc quay video | **Agent tự phát hiện** khi rà soát theo yêu cầu ở lượt #39. Không lộ ra ở lượt #38 vì lúc đó chỉ soi vòng đời trình lắng nghe, chưa soi vòng đời **state**. Cách tìm: liệt kê mọi trường trong `const s = {…}` rồi đối chiếu với các phép gán trong thân `renderWorkspace` | `kiểm chứng các thao tác còn lại có gắn sự kiện khớp hết chưa, nếu có tiếp tục ghi nhận vào chatlog` | Đặt lại `s.filterText = ''` và `s.filterSkill = ''` trong `renderWorkspace`, kèm chú thích nêu rõ nguyên tắc: **state phải khớp với đúng những gì sắp được vẽ ra**. Viết script `check-state-reset` tự trích danh sách trường từ chính khai báo `const s` rồi đối chiếu — nên trường thêm mới về sau cũng bị soi. `requestId` cố ý không đặt lại (bộ đếm tăng dần chống tranh chấp phản hồi cũ); script ghi nhận đây là ngoại lệ có chủ đích. Kết quả: **9/9 trường đúng, 1 ngoại lệ có lý do** | #39 |
 | E3 | #5 | `AGENT` | Script kiểm tra của agent in nhầm `IGNORED .env.example`, khiến tưởng tệp mẫu bị `.gitignore` chặn | Agent tự soát lại: `git check-ignore -v` in cả luật phủ định nên `if ($output)` bắt sai; kiểm lại bằng exit code | Không cần prompt sửa — agent tự đính chính trong cùng lượt | `.env.example` exit 1 (commit được), `.env` exit 0 (bị chặn). Không phải lỗi `.gitignore`, chỉ là lỗi cách đọc kết quả | #5 |
 
 ---
@@ -1339,4 +1340,65 @@ sách, xoá tiếp cái còn lại — hộp xác nhận chỉ được bật **
 
 ---
 
-<!-- Lượt tiếp theo: #39 -->
+### #39 — 18:50 — `AGENT` — ACCEPTED
+
+**Prompt:**
+> kiểm chứng các thao tác còn lại có gắn sự kiện khớp hết chưa, nếu có tiếp tục ghi nhận vào chatlog
+
+**Kết quả:** Rà soát toàn bộ tầng sự kiện của giao diện. **Tìm thêm một lỗi thật: E14.**
+
+**a) Các `paint*` có phá trình lắng nghe không? — Không.** Đây là rủi ro lớn nhất sau khi sửa
+E13: nếu một hàm vẽ lại thay luôn phần tử đang mang trình xử lý thì trình xử lý biến mất im lặng.
+Kiểm tra mọi điểm chạm DOM (`innerHTML`, `replaceWith`, `remove`, `outerHTML`) trong ba view:
+cả ba hàm vẽ chỉ ghi đè `innerHTML` của **thùng chứa con** (`#f-req-list`, `#cand-list`,
+`#result-body`), còn trình lắng nghe nằm trên **chính thùng chứa** hoặc trên phần tử ngoài nó.
+Không chỗ nào bị mất sự kiện.
+
+**b) Có phần tử tương tác nào không ai xử lý không? — Không.** Đối chiếu hai chiều:
+
+| | Kết quả |
+|---|---|
+| `data-*` được sinh ra | `delete, must, name, nav, plan, remove, toggle` |
+| `data-*` có trình xử lý | `delete, must, name, nav, plan, remove, toggle` |
+| Sinh ra mà không ai xử lý | **không có** |
+| Xử lý mà không ai sinh ra | **không có** |
+
+14 phần tử tương tác có `id` cũng khớp hết: 11 cái có trình xử lý riêng, `f-add-skill` và
+`f-add-level` chỉ được **đọc giá trị** lúc bấm "+ Thêm" nên không cần, `f-submit` là
+`type="submit"` nằm trong `#project-form` đã có trình xử lý `submit`. Đã xác minh thêm rằng
+`f-add-btn` và nút xoá dòng kỹ năng đều `type="button"` — không vô tình gửi form.
+
+**c) State có rò rỉ giữa các lần render không? — CÓ, và đây là lỗi E14.**
+`draft` của form được đặt lại đúng cách trong `renderProjectForm`. Nhưng `workspace.js` bỏ sót
+**`filterText` và `filterSkill`**: lọc ở dự án A rồi mở dự án B thì kho ứng viên vẫn bị lọc theo
+tiêu chí cũ, trong khi ô tìm kiếm vẽ ra rỗng và dropdown về "Mọi kỹ năng" — **không một dấu vết
+nào trên giao diện**. Rất dễ bị hiểu nhầm thành thiếu dữ liệu, và tệ hơn là có thể biến một ca
+có nghiệm thành vô nghiệm ngay giữa lúc quay video.
+
+Đã sửa, kèm script `check-state-reset` tự trích danh sách trường từ chính khai báo `const s`
+rồi đối chiếu với thân `renderWorkspace` — nên trường thêm mới về sau cũng tự động bị soi:
+
+```
+project CÓ · candidates CÓ · disabled CÓ · mustInclude CÓ · mustExclude CÓ
+filterText CÓ · filterSkill CÓ · activePlan CÓ · lastResult CÓ
+requestId — không, CỐ Ý (bộ đếm chống tranh chấp phản hồi cũ)
+PASS — không trường nào rò rỉ sang dự án khác.
+```
+
+**Nhận xét về quy trình:** hai lượt liên tiếp cùng một gốc rễ — **vòng đời**. Lượt #38 là vòng
+đời của trình lắng nghe, lượt #39 là vòng đời của state. Cả hai đều lọt qua `try:api` và
+`try:solver` vì hai bộ đó chỉ chạy phía máy chủ; không có bộ kiểm thử nào chạm tới trình duyệt.
+Đây là khoảng trống kiểm thử lớn nhất còn lại của dự án và cần nói thẳng khi trình bày.
+
+**Kiểm chứng:** `node --check` cả 4 tệp frontend PASS; `try:api` **45 PASS / 0 FAIL**;
+`try:solver` toàn bộ ca biên PASS; `check-structure` **32/32**; `check-state-reset` PASS.
+
+**Giới hạn:** như lượt #38, các kiểm tra trên đọc mã tĩnh và chạy phía máy chủ, không thay được
+thao tác thật. Cần xác nhận bằng tay: mở dự án A, gõ vào ô tìm kiếm, quay ra danh sách, mở dự án
+B — kho ứng viên phải hiện **đủ toàn bộ ứng viên**.
+
+**Commit:** `f309b60` "Đặt lại bộ lọc kho ứng viên khi đổi dự án [#39]" — 18:53:17
+
+---
+
+<!-- Lượt tiếp theo: #40 -->
