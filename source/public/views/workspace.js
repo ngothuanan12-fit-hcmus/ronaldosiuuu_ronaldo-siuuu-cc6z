@@ -33,6 +33,12 @@ export function renderWorkspace(project, candidates) {
   s.activePlan = 0;
   s.lastResult = null;
 
+  // Bộ lọc phải về mặc định theo đúng những gì sắp vẽ ra: ô tìm kiếm rỗng và
+  // dropdown ở "Mọi kỹ năng". Không đặt lại thì mở dự án khác sẽ lọc theo tiêu chí
+  // của dự án trước mà giao diện không hiện dấu vết nào, trông như thiếu ứng viên.
+  s.filterText = '';
+  s.filterSkill = '';
+
   const skills = project.requiredSkills.length
     ? project.requiredSkills.map((r) => `<span class="chip chip--req">${esc(r.skill)} ≥${r.minLevel}</span>`).join('')
     : '<span class="chip">chưa khai báo năng lực bắt buộc</span>';
