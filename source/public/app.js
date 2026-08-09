@@ -18,7 +18,26 @@ import { renderWorkspace, bindWorkspace } from './views/workspace.js';
 import { api, esc } from './lib/api.js';
 import { store } from './lib/store.js';
 
-const view = document.getElementById('view');
+let view = document.getElementById('view');
+
+/**
+ * Trả về một phần tử `#view` sạch, không còn trình lắng nghe nào của lần render trước.
+ *
+ * Vì sao cần: `#view` là phần tử cố định, chuyển trang chỉ ghi đè `innerHTML`. Các hàm `bind*`
+ * gắn sự kiện lên CHÍNH phần tử này (uỷ quyền sự kiện cho con), nên mỗi lần render lại là thêm
+ * một trình lắng nghe nữa mà không cái nào bị gỡ. Hậu quả: một cú nhấp "Xoá" chạy N lần — hộp
+ * xác nhận bật N lần rồi N yêu cầu DELETE cùng bay đi, cái đầu được 200, các cái sau 404 và báo
+ * "Không xoá được" dù dự án đã bị xoá thật.
+ *
+ * Thay nguyên phần tử bằng một bản sao rỗng là cách rẻ nhất để bỏ sạch trình lắng nghe: bản sao
+ * giữ nguyên thuộc tính (id, class, aria-live) nhưng không mang theo sự kiện nào.
+ */
+function resetView() {
+  const fresh = view.cloneNode(false);
+  view.replaceWith(fresh);
+  view = fresh;
+  return fresh;
+}
 
 /* ══════════════════ Điều hướng ══════════════════ */
 
@@ -85,6 +104,7 @@ async function render() {
   const { view: name, id } = parseHash();
   markNav(name);
   setAppbar(name);
+  resetView();
   view.innerHTML = '<p class="empty">Đang tải…</p>';
 
   try {

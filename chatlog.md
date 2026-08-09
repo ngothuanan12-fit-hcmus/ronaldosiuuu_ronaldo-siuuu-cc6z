@@ -176,6 +176,7 @@ cột `Lượt sửa` trỏ tới lượt đã khắc phục.
 | E10 | #27 | — (thí sinh) | **Sự cố bảo mật: API key thật của Google Stitch bị dán trực tiếp vào `.mcp.json`.** Tệp này nằm ở thư mục gốc và **không** bị `.gitignore` chặn tại thời điểm đó, nên chỉ cần một lệnh `git add -A` là khoá lên GitHub công khai — mất 20 điểm và lộ khoá thật | Agent nhận thông báo tệp thay đổi, đọc nội dung và thấy trường `env` chứa chuỗi khoá thật thay vì `${STITCH_API_KEY}` | Không cần prompt sửa — agent dừng việc đang làm và xử lý ngay | Xác minh khoá **chưa lọt vào commit nào**: `git log --all -- .mcp.json` rỗng và `git grep` trên toàn bộ `rev-list --all` không tìm thấy. Đã thêm `.mcp.json` (cùng `mcp.json`, `.cursor/mcp.json`, `.vscode/mcp.json`) vào `.gitignore`, tạo `.mcp.json.example` chỉ chứa placeholder để commit thay thế, cập nhật README. Quét lại mọi tệp đang theo dõi và sắp commit: sạch. **Khuyến nghị vẫn nên thu hồi và cấp lại khoá** vì khoá đã xuất hiện trong nội dung phiên chat mà thí sinh dự định chia sẻ link công khai làm bằng chứng | #27 |
 | E11 | #32 | `STITCH` | **Bản Tailwind xuất từ Stitch được đưa thẳng vào `source/public/`, thay ba tệp `index.html`, `app.js`, `styles.css`.** Bản đó không chạy được với backend: (1) nạp Tailwind qua CDN và hai `@import` Google Fonts → phá tiêu chí 0 phụ thuộc, vỡ giao diện khi mất mạng; (2) `app.js` đọc `meta.skills` và `meta.levels` nhưng `GET /api/meta` trả về `weights`, `componentLabels`, `limits` → ném lỗi ngay lúc khởi động, hiện alert "Không thể kết nối máy chủ"; (3) mất toàn bộ tích hợp `/api/projects`, không còn danh sách dự án, tạo, sửa, xoá, không còn hash routing; (4) sidebar có hai mục là link chết `javascript:void(0)` | Agent nhận thông báo tệp thay đổi, đọc lại cả ba tệp và đối chiếu với hợp đồng API thật của dự án | `thêm sidebar và header giống trong thư mục stitch... cho phù hợp với dự án` | Sửa bản Tailwind cho khớp backend là viết lại lần thứ tư, không kịp trong 36 phút còn lại. Đã **cất bản Tailwind vào thư mục tạm của phiên (không xoá)** và khôi phục ba tệp từ commit `927d36c`, rồi thêm header lên bản đang chạy được. **Bài học: sản phẩm của công cụ sinh giao diện là bản phác thảo thị giác, không phải mã chạy được — phải ráp lớp trình bày vào mã hiện có, không thay thế mã hiện có** | #32 |
 | E12 | #5 | `AGENT` | **`.gitignore` nuốt mất mã nguồn: `source/data/` chưa từng được commit trong suốt hơn 3 giờ.** Luật `data/` ở dòng 65 (viết để chặn thư mục cơ sở dữ liệu của Prisma/Drizzle) khớp với **mọi** thư mục tên `data` ở mọi cấp, nên đã loại luôn ba mô-đun mã nguồn `candidates.js` (24 hồ sơ), `skills.js` (12 kỹ năng), `scenarios.js` (3 kịch bản). Hậu quả: **bản clone từ GitHub không chạy được** — máy chủ ném lỗi thiếu mô-đun ngay khi khởi động. Đây là lỗi nghiêm trọng nhất phiên, vì bài chấm dựa trên repository chứ không dựa trên máy của thí sinh | **Thí sinh phát hiện và báo ở lượt #37.** Không công cụ nào bắt được: `git status` im lặng (tệp bị ignore thì không hiện là untracked), `check-structure.js` đọc **đĩa** nên luôn PASS 32/32, và mọi lần chạy thử đều dùng thư mục làm việc — nơi tệp vẫn tồn tại đầy đủ. Điểm mù: **toàn bộ khâu kiểm chứng đều chạy trên bản local, không lần nào trên bản clone** | `kiểm tra lại trạng thái commit có đủ file chưa, hiện tại đang thiếu file trong thư mục data chưa push` | Thêm ngoại lệ `!source/data/` kèm chú thích giải thích vì sao. Kiểm chứng bằng **quy trình mới, mạnh hơn**: (1) `git check-ignore` từng tệp — cả 3 đều thoát ignore; (2) đối chiếu toàn bộ tệp mã trên đĩa với `git ls-files` — chỉ còn `.mcp.json` nằm ngoài, đúng chủ ý; (3) **clone sạch sang thư mục khác rồi chạy thật**: `try-solver` PASS, `try-api` **45/45 PASS**, `GET /api/candidates` trả 200 kèm dữ liệu ứng viên, trang chủ 200. Remote sau khi sửa có đủ 31 tệp. **Bài học: kiểm tra bằng bản clone sạch, không bao giờ chỉ bằng thư mục đang làm việc** | #37 |
+| E13 | #24 | `AGENT` | **Trình lắng nghe sự kiện chồng chất khiến nút "Xoá" chạy nhiều lần.** `#view` là phần tử cố định, chuyển trang chỉ ghi đè `innerHTML`; nhưng `bindDashboard` và `bindProjectForm` gắn `addEventListener` lên **chính `#view`** (uỷ quyền sự kiện cho phần tử con), nên mỗi lần render lại là thêm một trình lắng nghe mà không cái nào bị gỡ. Sau N lần vào bảng điều khiển, một cú nhấp "Xoá" chạy **N lần**: hộp xác nhận bật N lần rồi N yêu cầu `DELETE` cùng bay đi — cái đầu được 200, các cái sau 404 → hiện `Không xoá được` dù dự án **đã bị xoá thật**. Nút xoá dòng kỹ năng trong form cũng dính lỗi này | **Thí sinh phát hiện và báo ở lượt #38.** Không bộ kiểm thử nào bắt được vì cả `try:api` lẫn `try:solver` đều chạy phía máy chủ; lỗi nằm hoàn toàn trong vòng đời DOM của trình duyệt. Agent khoanh vùng bằng cách gọi thẳng API: `DELETE` lần 1 trả 200, lần 2 trả 404, danh sách còn rỗng → backend đúng, lỗi ở frontend | `thao tác xóa hiện đang bị lỗi, bạn hãy kiểm tra lại` | Thêm `resetView()` trong `app.js`: trước mỗi lần render, thay `#view` bằng `cloneNode(false)` — bản sao giữ nguyên thuộc tính nhưng **không mang theo trình lắng nghe nào**; biến `view` đổi từ `const` sang `let`. Sửa một chỗ, chặn cả lớp lỗi cho mọi `bind*` hiện có lẫn về sau. Kiểm chứng bằng mô hình DOM tối giản mô phỏng `addEventListener` tích luỹ và `cloneNode`: **trước khi sửa 1/2/3/5 lần render → handler chạy 1/2/3/5 lần; sau khi sửa → luôn đúng 1 lần**. Kèm `try:api` 45/45 PASS, `check-structure` 32/32, 0 tham chiếu mạng ngoài, bản `app.js` máy chủ phục vụ giống hệt đĩa từng byte | #38 |
 | E3 | #5 | `AGENT` | Script kiểm tra của agent in nhầm `IGNORED .env.example`, khiến tưởng tệp mẫu bị `.gitignore` chặn | Agent tự soát lại: `git check-ignore -v` in cả luật phủ định nên `if ($output)` bắt sai; kiểm lại bằng exit code | Không cần prompt sửa — agent tự đính chính trong cùng lượt | `.env.example` exit 1 (commit được), `.env` exit 0 (bị chặn). Không phải lỗi `.gitignore`, chỉ là lỗi cách đọc kết quả | #5 |
 
 ---
@@ -1291,4 +1292,51 @@ dữ liệu ứng viên, trang chủ 200. Remote sau khi push có đủ 31 tệp
 
 ---
 
-<!-- Lượt tiếp theo: #38 -->
+### #38 — 18:40 — `AGENT` — ACCEPTED
+
+**Prompt:**
+> thao tác xóa hiện đang bị lỗi, bạn hãy kiểm tra lại
+
+**Kết quả:** Sửa lỗi **E13** — nút "Xoá" chạy nhiều lần cho một cú nhấp.
+
+**Khoanh vùng trước, sửa sau.** Gọi thẳng API để tách backend khỏi frontend: tạo một dự án rồi
+`DELETE` hai lần — lần 1 trả **200**, lần 2 trả **404** kèm thông báo tiếng Việt đúng, danh sách
+sau đó rỗng. Backend không sai một chỗ nào; lỗi nằm hoàn toàn ở giao diện.
+
+**Nguyên nhân:** `#view` là phần tử cố định, chuyển trang chỉ ghi đè `innerHTML`. Trong khi đó
+`bindDashboard` gắn `addEventListener` lên **chính `#view`** để uỷ quyền sự kiện cho các nút con.
+Mỗi lần render lại là thêm một trình lắng nghe nữa, không cái nào bị gỡ. Đây là lý do lần xoá
+**đầu tiên** luôn thành công còn các lần sau mới hỏng — đúng như triệu chứng thí sinh mô tả.
+
+**Cách sửa:** thêm `resetView()` trong `app.js`, chạy trước mỗi lần render: thay `#view` bằng
+`cloneNode(false)` — bản sao giữ nguyên `id`, `class`, `aria-live` nhưng không mang theo trình
+lắng nghe nào. Biến `view` đổi từ `const` sang `let`. Sửa **một chỗ ở tầng điều hướng** thay vì
+vá từng hàm `bind*`, nên chặn luôn cả lỗi tương tự trong `project-form.js` (nút xoá dòng kỹ năng)
+và mọi view thêm về sau.
+
+**Kiểm chứng:** viết mô hình DOM tối giản mô phỏng đúng hai hành vi liên quan (`addEventListener`
+tích luỹ, `cloneNode` không chép sự kiện):
+
+| Số lần vào bảng điều khiển | 1 | 2 | 3 | 5 |
+|---|---|---|---|---|
+| Số lần handler chạy — **trước** khi sửa | 1 | 2 | 3 | 5 |
+| Số lần handler chạy — **sau** khi sửa | 1 | 1 | 1 | 1 |
+
+Kèm: `node --check` PASS; `resetView()` chạy trước mọi lệnh `bind*`; không còn chỗ nào gắn sự
+kiện trực tiếp lên `#view`; `try:api` **45 PASS / 0 FAIL**; `check-structure` **32/32**;
+0 tham chiếu mạng ngoài; bản `app.js` máy chủ phục vụ **giống hệt đĩa từng byte**.
+
+**Một báo động giả trong lúc kiểm tra:** `curl | wc -c` báo tệp phục vụ chỉ 582 byte trong khi
+đĩa có 6365 — hoá ra công cụ bao ngoài `curl` cắt ngắn đầu ra khi nối ống. So sánh lại bằng cách
+ghi thẳng ra tệp cho kết quả trùng khớp tuyệt đối. Ghi lại vì đây là lần thứ hai trong phiên một
+biểu thức kiểm tra thô suýt dẫn tới kết luận sai (lần trước là cảnh báo mojibake ở lượt #36).
+
+**Giới hạn của khâu kiểm chứng này:** mô hình DOM chứng minh **cơ chế**, không thay được một cú
+nhấp thật trong trình duyệt. Cần xác nhận bằng tay: mở app, tạo 2 dự án, xoá 1, quay lại danh
+sách, xoá tiếp cái còn lại — hộp xác nhận chỉ được bật **đúng một lần** và không có cảnh báo lỗi.
+
+**Commit:** `1a3ef7a` "Sửa nút xoá chạy nhiều lần do trình lắng nghe chồng chất [#38]" — 18:47
+
+---
+
+<!-- Lượt tiếp theo: #39 -->
