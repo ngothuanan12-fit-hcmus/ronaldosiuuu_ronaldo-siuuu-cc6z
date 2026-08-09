@@ -1,0 +1,19 @@
+{
+  "name": "ronaldo-siuuu-cc6z",
+  "version": "0.1.0",
+  "private": true,
+  "description": "",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "source/server.js",
+  "scripts": {
+    "start": "node source/server.js",
+    "dev": "node --watch source/server.js",
+    "test": "node --test",
+    "check": "node scripts/check-structure.js"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

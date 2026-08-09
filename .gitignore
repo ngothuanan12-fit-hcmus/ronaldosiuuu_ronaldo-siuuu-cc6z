@@ -1,123 +1,293 @@
-# ---------- Environment variables (real values) ----------
+# =====================================================================
+#  ronaldosiuuu_ronaldo-siuuu-cc6z
+#  Stack: Node.js + TypeScript · SQLite qua ORM · frontend build bằng bundler
+#  Nguyên tắc: viết dư còn hơn thiếu. Một tệp môi trường lọt vào = mất 20 điểm.
+# =====================================================================
+
+# ---------------------------------------------------------------------
+# 1. Biến môi trường  (chặn giá trị THẬT, giữ lại tệp MẪU)
+# ---------------------------------------------------------------------
 .env
 .env.*
+*.env
+*.env.json
+.envrc
+.direnv/
+.env.vault
+env.json
+config.local.*
+*.local.json
+secrets.json
+secrets.yaml
+secrets.yml
+appsettings.Development.json
+
+# Tệp mẫu — CỐ Ý giữ lại để người khác biết cần khai báo biến gì.
+# (Các dòng phủ định phải nằm SAU các mẫu ở trên mới có hiệu lực.)
 !.env.example
 !.env.sample
 !.env.template
-*.env
+!.env.defaults
+!.env.*.example
+!example.env
+!sample.env
 
-# ---------- Local databases ----------
+# ---------------------------------------------------------------------
+# 2. Cơ sở dữ liệu SQLite local + journal/tạm của nó
+# ---------------------------------------------------------------------
 *.sqlite
 *.sqlite3
+*.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
 *.db
+*.db3
 *.db-journal
 *.db-shm
 *.db-wal
+*.sql.gz
+*.dump
 *.rdb
+dev.db*
+test.db*
+local.db*
+database.db*
+
+# Vị trí DB quen thuộc của các ORM (Prisma / Drizzle / TypeORM / Sequelize)
+prisma/*.db
+prisma/*.db-journal
+prisma/*.sqlite*
+prisma/dev.db*
+drizzle/*.db
+drizzle/*.sqlite*
+.drizzle/
+db/*.sqlite*
 data/
 !data/.gitkeep
+storage/
+!storage/.gitkeep
 
-# ---------- Keys, certificates, credentials ----------
+# CỐ Ý KHÔNG loại trừ: prisma/schema.prisma, prisma/migrations/,
+# drizzle/meta/ — đây là mã nguồn, phải được commit.
+
+# ---------------------------------------------------------------------
+# 3. Khóa, chứng chỉ, thông tin xác thực
+# ---------------------------------------------------------------------
 *.pem
 *.key
+*.keypair
+*.p8
 *.p12
 *.pfx
 *.jks
 *.keystore
+*.truststore
 *.crt
 *.cer
 *.der
+*.csr
 *.asc
 *.gpg
+*.pgp
+*.kdbx
 *.ppk
+*.token
+*.credentials
 id_rsa*
 id_dsa*
 id_ecdsa*
 id_ed25519*
+*_rsa
+*_dsa
+*_ed25519
+known_hosts
+.ssh/
+.gnupg/
 secrets/
+.secrets/
+private/
+credentials
 credentials.json
+credentials.yml
+*credential*.json
 client_secret*.json
 service-account*.json
-serviceAccountKey.json
-*credentials*.json
-.npmrc
-.pypirc
-.netrc
-.aws/
-.gcloud/
-*.token
+serviceAccountKey*.json
+gha-creds-*.json
 token.json
+tokens.json
+auth.json
+.htpasswd
+.netrc
+_netrc
+.npmrc
+.yarnrc
+.pypirc
+.aws/
+.azure/
+.gcloud/
+.kube/
+.docker/config.json
+*.tfstate
+*.tfstate.*
+.terraform/
 
-# ---------- Dependencies ----------
+# CỐ Ý KHÔNG loại trừ: .npmrc.example, .nvmrc (không chứa bí mật)
+!.nvmrc
+!.npmrc.example
+
+# ---------------------------------------------------------------------
+# 4. Phụ thuộc (backend + frontend)
+# ---------------------------------------------------------------------
 node_modules/
+**/node_modules/
+.pnpm-store/
+.pnpm-debug.log*
+.yarn/
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.yarn/cache/
+.yarn/install-state.gz
+.pnp.*
 bower_components/
 jspm_packages/
-.pnp/
-.pnp.js
-.yarn/
+web_modules/
 vendor/
+Pods/
 venv/
 .venv/
-env/
-ENV/
 __pycache__/
-*.py[cod]
-.tox/
-.nox/
-target/
-Pods/
 
-# ---------- Build output ----------
+# ---------------------------------------------------------------------
+# 5. Build output (backend TypeScript + frontend bundler)
+# ---------------------------------------------------------------------
 dist/
+dist-ssr/
 build/
 out/
+output/
+lib-cov/
+compiled/
+public/build/
+.tsbuildinfo
+*.tsbuildinfo
+
+# Bundler / meta-framework
+.vite/
+.rollup.cache/
+.webpack/
+.esbuild/
+.swc/
+.turbo/
+.parcel-cache/
+.rspack/
 .next/
 .nuxt/
 .svelte-kit/
-.output/
-.parcel-cache/
-.cache/
-coverage/
-*.egg-info/
-*.o
-*.obj
-*.exe
-*.dll
-*.so
-*.dylib
-*.class
+.astro/
+.angular/
+.docusaurus/
+.vercel/
+.netlify/
+.wrangler/
+.serverless/
+storybook-static/
 
-# ---------- Logs ----------
+# ---------------------------------------------------------------------
+# 6. Log
+# ---------------------------------------------------------------------
 logs/
 *.log
+*.log.*
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+*.pid
+*.seed
+*.pid.lock
 
-# ---------- IDE / editor ----------
-.vscode/
+# ---------------------------------------------------------------------
+# 7. Cache / kết quả test tạm
+# ---------------------------------------------------------------------
+.cache/
+.temp/
+.tmp/
+tmp/
+temp/
+.eslintcache
+.stylelintcache
+.prettiercache
+.node_repl_history
+.npm/
+.nyc_output/
+coverage/
+*.lcov
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+cypress/screenshots/
+cypress/videos/
+.vitest/
+.jest-cache/
+
+# ---------------------------------------------------------------------
+# 8. IDE / editor
+# ---------------------------------------------------------------------
+.vscode/*
 !.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+*.code-workspace
+.history/
 .idea/
 *.iml
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-*~
+*.ipr
+*.iws
+.fleet/
+.zed/
+.cursor/
+.claude/
+.aider*
+*.sublime-project
+*.sublime-workspace
 .project
 .classpath
 .settings/
+*.suo
+*.user
+*.sw?
+*~
+\#*\#
+.\#*
 
-# ---------- OS ----------
+# ---------------------------------------------------------------------
+# 9. Hệ điều hành
+# ---------------------------------------------------------------------
 .DS_Store
 .DS_Store?
+.AppleDouble
+.LSOverride
 ._*
 .Spotlight-V100
+.TemporaryItems
 .Trashes
-ehthumbs.db
+.VolumeIcon.icns
+.fseventsd
 Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
 desktop.ini
 $RECYCLE.BIN/
+*.lnk
+*.stackdump
+.directory
+.Trash-*
+.nfs*

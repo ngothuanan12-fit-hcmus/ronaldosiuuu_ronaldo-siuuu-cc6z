@@ -1,0 +1,67 @@
+{
+  "team": {
+    "name": "ronaldosiuuu",
+    "username": "ronaldo-siuuu-cc6z"
+  },
+  "submission": {
+    "rootDirectory": "ronaldosiuuu_ronaldo-siuuu-cc6z",
+    "title": "",
+    "description": "",
+    "repositoryUrl": "",
+    "demoUrl": "",
+    "submittedAt": "2026-08-09T18:00:00+07:00"
+  },
+  "structure": {
+    "readme": "README.md",
+    "chatlog": "chatlog.md",
+    "manifest": "submission.json",
+    "gitignore": ".gitignore",
+    "dependencyManifest": "package.json",
+    "sourceDirectory": "source/"
+  },
+  "stack": {
+    "language": "JavaScript (ESM)",
+    "runtime": "Node.js",
+    "version": ">=18",
+    "frameworks": []
+  },
+  "commands": {
+    "install": "",
+    "build": "",
+    "start": "npm start",
+    "test": "npm test"
+  },
+  "entrypoint": "source/server.js",
+  "environment": {
+    "exampleFile": ".env.example",
+    "requiredVariables": []
+  },
+  "aiUsage": {
+    "allCodeAiGenerated": true,
+    "manualCodeEdits": false,
+    "chatlogFile": "chatlog.md",
+    "assistants": [
+      {
+        "id": "AGENT",
+        "name": "Claude Code (Opus 5)",
+        "role": "Agent chính, sinh toàn bộ mã nguồn",
+        "surface": "IDE",
+        "sessionLinks": []
+      },
+      {
+        "id": "REVIEWER",
+        "name": "",
+        "role": "Review code, soát lỗi",
+        "surface": "browser",
+        "sessionLinks": []
+      },
+      {
+        "id": "DOCS",
+        "name": "",
+        "role": "Soạn tài liệu",
+        "surface": "browser",
+        "sessionLinks": []
+      }
+    ]
+  }
+}
