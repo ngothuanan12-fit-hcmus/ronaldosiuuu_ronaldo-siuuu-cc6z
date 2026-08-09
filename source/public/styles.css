@@ -224,28 +224,8 @@ a:hover { text-decoration: underline; }
 .appbar__actions { display: flex; align-items: center; gap: 12px; }
 .appbar__actions .badge { max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
 
-/* Trang bên trong đã có tiêu đề riêng, nên bỏ h1 lặp lại trong .page__head */
-.appbar + .context + .view .page__head h1,
+/* Trang bên trong đã có tiêu đề riêng ở header, nên h1 trong trang nhỏ hơn */
 .appbar + .view .page__head h1 { font-size: 1.44rem; }
-
-/* ─────────────────────────── Khối bối cảnh ─────────────────────────── */
-
-.context {
-  padding: 16px 24px;
-  background: var(--surface-low);
-  border-bottom: 1px solid var(--border);
-  font-size: 0.833rem;
-  color: var(--fg-muted);
-}
-.context__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
-.context strong { color: var(--fg); font-weight: 600; }
-.context__note {
-  margin: 12px 0 0;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-  color: var(--fg-dim);
-  font-size: 0.694rem;
-}
 
 /* ─────────────────────────── Bố cục trang ─────────────────────────── */
 

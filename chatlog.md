@@ -1117,4 +1117,32 @@ không còn `context__note`; `try:api` 45 PASS / 0 FAIL; `check-structure` PASS 
 
 ---
 
-<!-- Lượt tiếp theo: #34 -->
+### #34 — 17:37 — `AGENT` — ACCEPTED
+
+**Prompt:**
+> xóa tab bối cảnh
+>
+> (tiếp theo, kèm ảnh) bỏ phần chú thích trong ảnh ở các tab
+
+**Kết quả:** Gỡ hoàn toàn tính năng "Bối cảnh" khỏi giao diện. Phần chú thích trong ảnh thí sinh
+gửi chính là khối bối cảnh này, nên một thay đổi xử lý cả hai yêu cầu.
+
+- `index.html` — bỏ mục điều hướng "Bối cảnh" và toàn bộ `<section class="context">`.
+  Sidebar còn đúng hai mục: Dự án · Dự án mới.
+- `app.js` — bỏ trình lắng nghe sự kiện bật/tắt khối bối cảnh.
+- `styles.css` — bỏ các quy tắc `.context`, `.context__grid`, `.context__note`; sửa bộ chọn
+  `.appbar + .context + .view` thành `.appbar + .view` cho khớp cấu trúc mới.
+
+**Nội dung bối cảnh không mất.** Đề bài mục 1 yêu cầu "bối cảnh phải được đặc tả rõ ràng trong
+sản phẩm" — phần này vẫn còn đầy đủ trong `README.md` mục 1, gồm cả tuyên bố về dữ liệu giả lập
+và việc không lọc theo thông tin nhạy cảm.
+
+**Kiểm chứng:** `node --check` PASS; không còn chuỗi `btn-context` hay `.context` sót lại ở cả
+ba tệp; mọi class đều có định nghĩa CSS; máy chủ chạy trên cổng 3223 trả 200, HTML có đúng
+2 `nav-item` và không còn `id="context"`; `try:api` 45 PASS / 0 FAIL.
+
+**Commit:** _(chờ)_
+
+---
+
+<!-- Lượt tiếp theo: #35 -->

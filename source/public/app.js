@@ -120,14 +120,6 @@ async function render() {
 /* ══════════════════ Khởi động ══════════════════ */
 
 async function init() {
-  const contextBtn = document.getElementById('btn-context');
-  contextBtn.addEventListener('click', () => {
-    const box = document.getElementById('context');
-    box.hidden = !box.hidden;
-    contextBtn.setAttribute('aria-expanded', String(!box.hidden));
-    contextBtn.classList.toggle('nav-item--active', !box.hidden);
-  });
-
   window.addEventListener('hashchange', render);
 
   try {
