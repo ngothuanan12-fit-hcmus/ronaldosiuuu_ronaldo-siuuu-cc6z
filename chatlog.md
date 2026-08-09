@@ -114,6 +114,8 @@ cột `Lượt sửa` trỏ tới lượt đã khắc phục.
 | E5 | #17 | `AGENT` | Bản vá E4 lần 1 (thang tuyến tính `(count-1)/2`) gây **hồi quy**: thuật toán bắt đầu ưu tiên dồn 2 người dự phòng vào một kỹ năng thay vì phủ đều — phương án đứng đầu có Backend **không có dự phòng nào** | Chạy lại `try-solver.js`, thấy phương án #1 hiển thị "Backend: KHÔNG có dự phòng" mà vẫn xếp trên | Không cần prompt sửa — agent tự phát hiện ngay ở lần chạy kế tiếp | Đổi sang thang 0 / 0.8 / 1.0 có bước nhảy lớn ở người dự phòng đầu tiên → phủ đều luôn thắng dồn cục bộ | #17 |
 | E6 | #17 | `AGENT` | Khi `requiredSkills` rỗng, bước lọc sơ bộ loại sạch ứng viên (vì không ai "đóng góp kỹ năng yêu cầu") → hệ thống báo vô nghiệm sai, đáng lẽ mọi đội hình đều hợp lệ | Ca biên "Không khai báo năng lực nào" trong `try-solver.js` trả về "vô nghiệm" thay vì "ok" | Không cần prompt sửa — ca biên do chính agent viết đã bắt được | Thêm điều kiện: chưa khai báo năng lực nào thì không có căn cứ loại ai, giữ nguyên toàn bộ pool | #17 |
 | E7 | #6–#17 | `AGENT` | **Timestamp trong chatlog bị lệch tới hơn 1 giờ.** Agent suy giờ từ *lịch trình kế hoạch* thay vì đọc đồng hồ hệ thống, nên mỗi lượt bị ghi muộn hơn thực tế. Lượt #17 ghi "≈15:20" trong khi commit thật là 15:09:34. Đây là lỗi nghiêm trọng vì ban tổ chức đối chiếu timestamp chatlog với lịch sử commit để phát hiện can thiệp thủ công | Thí sinh phát hiện và báo ở lượt #18. Agent xác minh bằng `Get-Date`, `git log --date=format:%H:%M:%S` và `LastWriteTime` của từng tệp | `thời gian thực tế đang bị lệch, xem xét lại thời gian và ghi lại lỗi vào chatlog` | Đã hiệu chỉnh timestamp của 10 lượt (#6, #7, #8, #10–#15, #17) theo mốc commit và mtime tệp thật. Từ lượt #18 trở đi, agent đọc đồng hồ hệ thống trước khi ghi mỗi lượt | #18 |
+| E8 | #17 | `REVIEWER` | **False negative trong `solve()`**: bước lọc sơ bộ loại người không đóng góp kỹ năng yêu cầu, nhưng những người đó vẫn có thể là người giúp đội đạt đủ `minTotalHours` → hệ thống báo **vô nghiệm sai** khi thực tế CÓ phương án. Nguy hiểm vì rơi đúng vào checkpoint 5 của video demo | `REVIEWER` đọc 5 tệp domain ở lượt #20 và chỉ ra, kèm dữ liệu tái tạo cụ thể | Thí sinh chuyển phát hiện của `REVIEWER` sang `AGENT` ở lượt #22 | Đã sửa: giữ nguyên tập thu hẹp để chạy nhanh, nhưng nếu không ra phương án nào thì **chạy lại trên tập đầy đủ** trước khi kết luận vô nghiệm. Kiểm chứng ca `Security≥2, quân số 2–3, ≥60h`: trước khi sửa báo vô nghiệm, sau khi sửa trả về 55 phương án (`retriedWithFullPool = true`) | #22 |
+| E9 | #22 | `AGENT` | **Agent tự làm hỏng encoding của `solver.js`**: dùng `Get-Content -Raw` (đọc theo ANSI trong PowerShell 5.1) rồi `Set-Content -Encoding UTF8` để sửa một chuỗi → toàn bộ tiếng Việt trong tệp biến thành mojibake (`Lõi` → `LÃµi`), tệp bị thêm BOM | Agent tự kiểm tra ngay sau lệnh: đọc lại tệp bằng `[IO.File]::ReadAllText(..., UTF8)` và khớp mẫu mojibake | Không cần prompt sửa — agent tự phát hiện và khôi phục | Khôi phục bằng cách encode chuỗi mojibake theo codepage 1252 rồi ghi lại dạng byte thô, bỏ BOM. `node --check` PASS, `try-solver.js` chạy lại đủ 8/8 ca biên. **Bài học: không dùng `Get-Content`/`Set-Content` cho tệp UTF-8 tiếng Việt, chỉ dùng công cụ Edit/Write** | #22 |
 | E3 | #5 | `AGENT` | Script kiểm tra của agent in nhầm `IGNORED .env.example`, khiến tưởng tệp mẫu bị `.gitignore` chặn | Agent tự soát lại: `git check-ignore -v` in cả luật phủ định nên `if ($output)` bắt sai; kiểm lại bằng exit code | Không cần prompt sửa — agent tự đính chính trong cùng lượt | `.env.example` exit 1 (commit được), `.env` exit 0 (bị chặn). Không phải lỗi `.gitignore`, chỉ là lỗi cách đọc kết quả | #5 |
 
 ---
@@ -608,4 +610,111 @@ và các giới hạn an toàn) để giao diện không phải chép cứng con
 
 ---
 
-<!-- Lượt tiếp theo: #20 -->
+### #20 — 15:15 — `REVIEWER` — NO-CODE
+
+**Prompt:**
+> Đây là lõi thuật toán ghép đội của tôi. Hãy soát giúp, chỉ báo lỗi thật, không đề xuất tái cấu trúc:
+>
+> Có trường hợp nào một phương án vi phạm 1 trong 4 điều kiện mà vẫn lọt qua không? (không trùng người; quân số trong khoảng min–max; phủ 100% kỹ năng ở mức ≥ minLevel; thỏa mãn mustInclude/mustExclude/minTotalHours/minPresenters)
+> Có nhánh nào có thể lặp vô hạn, hoặc trả về undefined/NaN không?
+> Có bộ dữ liệu nào khiến hàm chấm điểm xếp hạng sai không?
+> Liệt kê 6 ca kiểm thử biên mà tôi nên thử bằng tay.
+> Trả lời bằng danh sách phát hiện, mỗi phát hiện kèm dữ liệu đầu vào cụ thể gây lỗi.
+
+**Kết quả:**
+- Đọc 5 file domain: `solver.js` (336 dòng), `candidate-utils.js` (36), `scoring.js` (145),
+  `assignment.js` (86), `diagnosis.js` (166) + dữ liệu `candidates.js`, `skills.js`.
+- **4 điều kiện hợp lệ: KHÔNG có phương án nào lọt qua sai.** Cách sinh tổ hợp đảm bảo
+  không trùng người, quân số được kẹp, `coversAllSkills` + `satisfiesConstraints` chặn đúng.
+- **Không lặp vô hạn.** `recurse(i+1)` luôn tăng index, chặn cứng 200.000 tổ hợp.
+- **Không NaN/undefined** trong luồng thực tế. `clamp01` xử lý NaN. Optional chaining bảo vệ `skills`.
+- **1 lỗi mức trung bình:** lọc sơ bộ loại người không có kỹ năng yêu cầu nhưng cần cho
+  `minTotalHours` → false negative (nói vô nghiệm khi thực tế CÓ phương án).
+  Kèm dữ liệu tái tạo cụ thể.
+- **3 phát hiện mức thấp:** hai hàm `levelOf` trùng tên ở 2 module (bẫy bảo trì);
+  `requiredSkills = []` → mọi đội bằng điểm; `teamSize.min = 0` bị kẹp thành 1 mà không cảnh báo.
+- **6 ca kiểm thử biên** kèm dữ liệu cụ thể: mustInclude ∩ mustExclude, teamSize 0, skills null,
+  requiredSkills trùng, pool rỗng, minTotalHours cực lớn.
+- **Không tạo tệp mã nguồn nào.**
+
+**Commit:** — (không sinh commit; lượt soát lỗi, không sinh mã)
+
+---
+
+### #21 — 15:20 — `AGENT` — NO-CODE
+
+**Prompt:**
+> mình muốn dùng file của riêng dự án (.mcp.json nằm ở thư mục gốc của project) để Cấu hình
+> MCP Server của google stitch để làm giao diện vào Claude Code, bạn sẽ lấy giao diện từ đó
+> để phát triển từ đó, chuẩn bị kế hoạch cho mình xem xét trước, ghi lại chatlog
+
+**Kết quả:** Lập kế hoạch tích hợp Google Stitch qua MCP, **chưa tạo tệp nào**, chờ thí sinh duyệt.
+
+**Ba rủi ro agent nêu thẳng trước khi lập kế hoạch:**
+1. **Không xác nhận được Google Stitch có MCP server chính thức.** Agent từ chối bịa tên gói
+   hay lệnh chạy; đề xuất bước xác minh có mốc bỏ cuộc thay vì đoán.
+2. **`.mcp.json` sẽ bị commit** — kiểm chứng bằng `git check-ignore -q -- .mcp.json` → exit 1.
+   Nếu đặt API key thẳng trong đó thì key lên GitHub công khai, mất 20 điểm.
+3. **MCP server mới không dùng được ngay trong phiên hiện tại** — Claude Code đọc `.mcp.json`
+   lúc khởi động và cần phê duyệt; phiên này lại là non-interactive nên không chạy được OAuth.
+
+**Kế hoạch 4 giai đoạn:** G0 xác minh (hộp thời gian 10 phút, chốt 15:32) → G1 cấu hình an toàn
+dùng `${STITCH_API_KEY}` + `.env` + `.env.example` → G2 sinh giao diện → G3 tích hợp và gỡ mọi
+phụ thuộc CDN mà Stitch chèn vào (bài nộp bắt buộc 0 phụ thuộc, chạy offline).
+
+**Ước tính:** 75 phút qua Stitch so với 50 phút tự viết. Cả hai đều vừa ngân sách 2h40 còn lại,
+nhưng Stitch ăn mất phần đệm vừa giành lại được từ lượt #18.
+
+**Khuyến nghị: phương án lai.** Cho Stitch đúng 10 phút xác minh, đồng thời agent bắt đầu G4
+ngay — viết `app.js` nối API và khung 3 cột, phần bắt buộc phải làm dù có Stitch hay không.
+Nếu Stitch dùng được thì áp lớp giao diện của nó lên ở G5 như một nâng cấp thẩm mỹ có thể bỏ.
+Cách này biến Stitch từ rủi ro trên đường găng thành phần thưởng tùy chọn.
+
+**Lưu ý cho chatlog:** nếu dùng Stitch, phải khai báo thêm một dòng `STITCH` vào bảng nhãn AI
+ở mục 0 trước khi ghi lượt đầu tiên của nó — giao diện do Stitch sinh vẫn là mã do AI sinh,
+hợp luật, nhưng phải truy nguyên được.
+
+**Commit:** — (không sinh commit; lượt lập kế hoạch, chờ thí sinh quyết định)
+
+---
+
+### #22 — 15:25 — `AGENT` — ACCEPTED
+
+**Prompt:**
+> chạy G4 bây giờ theo phương án lai để có cái nhìn tổng quan và tạm thời về giao diện
+> chatlog ghi ở lượt 20 là của AI reviewer đã nêu ra một vài lỗi
+
+**Kết quả:**
+
+**a) Sửa nhãn lượt #20** từ `DOCS` thành `REVIEWER` cho đúng AI đã thực hiện.
+
+**b) Sửa lỗi `REVIEWER` phát hiện** (E8) — false negative trong `solve()`. Tách `pool` thành
+`fullPool` và `narrowPool`; nếu tập thu hẹp không ra phương án nào thì chạy lại trên tập đầy đủ
+trước khi kết luận vô nghiệm, kèm cờ `meta.retriedWithFullPool`. Kiểm chứng ca tái tạo:
+trước khi sửa báo vô nghiệm, sau khi sửa trả về 55 phương án.
+
+**c) Tự gây rồi tự sửa lỗi encoding** (E9) — làm hỏng tiếng Việt trong `solver.js` bằng lệnh
+PowerShell round-trip, khôi phục ngay trong lượt.
+
+**d) Thực hiện G4 — giao diện**, viết lại 3 tệp trong `source/public/`:
+- `index.html` — bố cục 3 cột (Mục tiêu · Kho ứng viên · Kết quả), khối bối cảnh bật/tắt được
+  hiển thị ngay trên giao diện theo yêu cầu đề bài.
+- `styles.css` — chủ đề tối, responsive 3 mốc (1100px, 720px), **0 tham chiếu ra mạng ngoài**.
+- `app.js` — **không chứa một dòng logic nghiệp vụ nào**; chỉ dựng trạng thái UI, gọi
+  `POST /api/solve`, và vẽ kết quả. Có chống race condition bằng `requestId` để phản hồi cũ
+  đến muộn không ghi đè kết quả mới. Mọi chuỗi đều đi qua hàm `esc()` chống XSS.
+
+**Cập nhật động:** mọi thay đổi — bật/tắt ứng viên, thêm/bớt năng lực, đổi quân số, đổi giờ,
+đặt bắt buộc/loại trừ — đều gọi lại API và vẽ lại toàn bộ khối kết quả, không có cache.
+
+**Kiểm chứng:** `node --check` PASS; `npm run try:api` 30 PASS / 0 FAIL; tải thử `/`,
+`/styles.css`, `/app.js`, `/api/candidates` đều trả 200; quét `source/public/` không có
+`http://`, `https://`, CDN hay font từ mạng ngoài.
+
+**Chưa làm:** đoạn mô tả bối cảnh đang là bản agent tự viết, chờ thay bằng bản của `DOCS`.
+
+**Commit:** _(chờ)_
+
+---
+
+<!-- Lượt tiếp theo: #23 -->

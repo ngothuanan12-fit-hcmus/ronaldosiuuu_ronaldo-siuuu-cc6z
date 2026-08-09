@@ -158,24 +158,28 @@ export function solve(rawProject, allCandidates) {
   const mustInclude = new Set(project.constraints.mustInclude);
   const mustExclude = new Set(project.constraints.mustExclude);
 
-  const pool = availableCandidates
+  // Tập đầy đủ: mọi người khả dụng và không bị loại trừ.
+  const fullPool = availableCandidates
     .filter((c) => !mustExclude.has(c.id))
-    .filter((c) => {
-      if (mustInclude.has(c.id)) return true;
-      // Chưa khai báo năng lực nào thì không có căn cứ để loại ai.
-      if (project.requiredSkills.length === 0) return true;
-      // Bỏ người không đóng góp kỹ năng nào trong yêu cầu — trừ khi cần họ để
-      // đủ giờ cam kết hoặc đủ người trình bày.
-      if (project.requiredSkills.some((req) => meetsRequirement(c, req))) return true;
-      if (project.constraints.minPresenters > 0 && levelOf(c, 'Thuyết trình') > 0) return true;
-      return false;
-    })
     .sort((a, b) => a.id.localeCompare(b.id));
+
+  // Tập thu hẹp: bỏ người không đóng góp kỹ năng nào trong yêu cầu, để không
+  // gian tìm kiếm nhỏ đi. Đây CHỈ là tối ưu tốc độ — nếu tập này không tìm ra
+  // phương án nào, thuật toán sẽ chạy lại trên tập đầy đủ (xem phía dưới), vì
+  // một người "không đóng góp kỹ năng" vẫn có thể là người làm đủ số giờ cam kết.
+  const narrowPool = fullPool.filter((c) => {
+    if (mustInclude.has(c.id)) return true;
+    // Chưa khai báo năng lực nào thì không có căn cứ để loại ai.
+    if (project.requiredSkills.length === 0) return true;
+    if (project.requiredSkills.some((req) => meetsRequirement(c, req))) return true;
+    if (project.constraints.minPresenters > 0 && levelOf(c, 'Thuyết trình') > 0) return true;
+    return false;
+  });
 
   const meta = {
     totalCandidates: candidates.length,
     availableCandidates: availableCandidates.length,
-    poolSize: pool.length,
+    poolSize: narrowPool.length,
     combinationsChecked: 0,
     validPlans: 0,
     truncated: false,
@@ -206,17 +210,18 @@ export function solve(rawProject, allCandidates) {
     finish({
       ok: false,
       plans: [],
-      diagnosis: buildDiagnosis({ project, pool, allCandidates: candidates, availableCandidates, nearMiss }),
+      diagnosis: buildDiagnosis({ project, pool: fullPool, allCandidates: candidates, availableCandidates, nearMiss }),
     });
 
   // ---- Bước 2: kiểm tra khả thi sớm --------------------------------------
   if (project.requiredSkills.length === 0) {
     warnings.push('Chưa khai báo năng lực bắt buộc nào, mọi đội hình đều được coi là phủ đủ.');
   }
-  if (pool.length < project.teamSize.min) return bail();
-  if (!coversAllSkills(pool, project)) return bail();
+  if (fullPool.length < project.teamSize.min) return bail();
+  if (!coversAllSkills(fullPool, project)) return bail();
 
   // ---- Bước 3: duyệt tổ hợp có cắt tỉa -----------------------------------
+  const runSearch = (pool) => {
   const { suffixBest, suffixHours } = buildSuffixTables(pool, project.teamSize.max);
   const validPlans = [];
 
@@ -287,6 +292,24 @@ export function solve(rawProject, allCandidates) {
     }
   }
 
+    return validPlans;
+  };
+
+  // Chạy trên tập thu hẹp trước cho nhanh.
+  let pool = narrowPool;
+  let validPlans = runSearch(pool);
+
+  // Không tìm thấy gì → chạy lại trên tập ĐẦY ĐỦ trước khi kết luận vô nghiệm.
+  // Bước này chống false negative: một người không đóng góp kỹ năng nào vẫn có
+  // thể là người giúp đội đạt đủ tổng giờ cam kết. Lỗi này do REVIEWER phát hiện.
+  if (validPlans.length === 0 && narrowPool.length < fullPool.length && !meta.truncated) {
+    meta.retriedWithFullPool = true;
+    nearMiss = null;
+    pool = fullPool;
+    validPlans = runSearch(pool);
+  }
+
+  meta.poolSize = pool.length;
   meta.validPlans = validPlans.length;
   if (validPlans.length === 0) return bail();
 

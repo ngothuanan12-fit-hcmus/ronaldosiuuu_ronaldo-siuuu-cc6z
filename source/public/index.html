@@ -3,15 +3,142 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>ronaldosiuuu</title>
+    <title>SquadFit — Ghép đội hackathon theo ràng buộc đa biến</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <main>
-      <h1>ronaldosiuuu</h1>
-      <p class="sub">Bộ khung dự án đã sẵn sàng. Nội dung sản phẩm sẽ được thêm vào đây.</p>
-      <p class="status" id="status">Đang kiểm tra server…</p>
+    <header class="topbar">
+      <div class="topbar__brand">
+        <span class="logo">SF</span>
+        <div>
+          <h1>SquadFit</h1>
+          <p class="tagline">Ghép đội hackathon sinh viên theo ràng buộc đa biến</p>
+        </div>
+      </div>
+      <button type="button" class="btn btn--ghost" id="btn-context" aria-expanded="false">
+        Bối cảnh sử dụng
+      </button>
+    </header>
+
+    <section class="context" id="context" hidden>
+      <p>
+        <strong>Người dùng:</strong> thành viên ban tổ chức một hackathon sinh viên, phụ trách
+        phân đội. Hàng chục sinh viên đăng ký lẻ, mỗi người một tập kỹ năng khác nhau.
+      </p>
+      <p>
+        <strong>Vấn đề:</strong> ghép đội thủ công dễ để lọt những nhiệm vụ mà không thành viên
+        nào làm được, và không giải thích được vì sao chọn người này thay vì người kia.
+      </p>
+      <p>
+        <strong>SquadFit làm gì:</strong> nhận yêu cầu của một đề bài, duyệt mọi tổ hợp ứng viên
+        hợp lệ, xếp hạng và giải thích rõ ai đảm nhận yêu cầu nào — hoặc chỉ ra chính xác đang
+        thiếu hụt năng lực gì khi không có phương án nào.
+      </p>
+      <p class="context__note">
+        Dữ liệu ứng viên là dữ liệu giả lập minh bạch. Hệ thống không lưu và không cho phép lọc
+        theo bất kỳ thông tin nhạy cảm nào (dân tộc, tôn giáo, quan điểm chính trị, giới tính).
+      </p>
+    </section>
+
+    <main class="layout">
+      <!-- ══════════ CỘT TRÁI — MỤC TIÊU DỰ ÁN ══════════ -->
+      <section class="panel" aria-labelledby="h-goal">
+        <div class="panel__head">
+          <h2 id="h-goal">1 · Mục tiêu dự án</h2>
+        </div>
+
+        <div class="panel__body">
+          <fieldset class="field">
+            <legend>Kịch bản mẫu</legend>
+            <div class="scenario-list" id="scenario-list"></div>
+          </fieldset>
+
+          <label class="field">
+            <span class="field__label">Tên đề bài</span>
+            <input type="text" id="project-name" class="input" />
+          </label>
+
+          <fieldset class="field">
+            <legend>Năng lực bắt buộc <small id="skill-count"></small></legend>
+            <ul class="req-list" id="req-list"></ul>
+            <div class="req-add">
+              <select id="add-skill" class="input input--sm" aria-label="Chọn kỹ năng"></select>
+              <select id="add-level" class="input input--sm" aria-label="Mức tối thiểu">
+                <option value="1">≥ 1 · Biết cơ bản</option>
+                <option value="2" selected>≥ 2 · Thành thạo</option>
+                <option value="3">≥ 3 · Chuyên sâu</option>
+              </select>
+              <button type="button" class="btn btn--sm" id="btn-add-skill">Thêm</button>
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>Quân số</legend>
+            <div class="row">
+              <label class="row__item">
+                <span class="field__label">Tối thiểu</span>
+                <input type="number" id="size-min" class="input input--sm" min="1" max="8" />
+              </label>
+              <label class="row__item">
+                <span class="field__label">Tối đa</span>
+                <input type="number" id="size-max" class="input input--sm" min="1" max="8" />
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>Ràng buộc bổ sung</legend>
+            <div class="row">
+              <label class="row__item">
+                <span class="field__label">Tổng giờ tối thiểu</span>
+                <input type="number" id="min-hours" class="input input--sm" min="0" step="5" />
+              </label>
+              <label class="row__item">
+                <span class="field__label">Số người trình bày</span>
+                <input type="number" id="min-presenters" class="input input--sm" min="0" max="8" />
+              </label>
+            </div>
+            <p class="hint" id="must-hint"></p>
+          </fieldset>
+        </div>
+      </section>
+
+      <!-- ══════════ CỘT GIỮA — KHO ỨNG VIÊN ══════════ -->
+      <section class="panel" aria-labelledby="h-pool">
+        <div class="panel__head">
+          <h2 id="h-pool">2 · Kho ứng viên</h2>
+          <span class="badge" id="pool-count">—</span>
+        </div>
+
+        <div class="panel__body panel__body--tight">
+          <div class="filters">
+            <input type="search" id="search" class="input input--sm" placeholder="Tìm theo tên…" aria-label="Tìm ứng viên theo tên" />
+            <select id="filter-skill" class="input input--sm" aria-label="Lọc theo kỹ năng"></select>
+            <button type="button" class="btn btn--sm btn--ghost" id="btn-reset-pool">Bật lại tất cả</button>
+          </div>
+          <ul class="cand-list" id="cand-list"></ul>
+          <p class="empty" id="cand-empty" hidden>Không có ứng viên nào khớp bộ lọc.</p>
+        </div>
+      </section>
+
+      <!-- ══════════ CỘT PHẢI — KẾT QUẢ ══════════ -->
+      <section class="panel panel--wide" aria-labelledby="h-result">
+        <div class="panel__head">
+          <h2 id="h-result">3 · Đội hình đề xuất</h2>
+          <span class="badge badge--muted" id="solve-meta">—</span>
+        </div>
+
+        <div class="panel__body" id="result-body" aria-live="polite">
+          <p class="empty">Đang tải…</p>
+        </div>
+      </section>
     </main>
+
+    <footer class="footer">
+      <span>Đội <strong>ronaldosiuuu</strong> · SPD Challenge 2026</span>
+      <span id="engine-note"></span>
+    </footer>
+
     <script type="module" src="/app.js"></script>
   </body>
 </html>
