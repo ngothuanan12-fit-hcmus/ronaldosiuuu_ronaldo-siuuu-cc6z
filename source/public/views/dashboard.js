@@ -5,12 +5,7 @@ import { api, esc, shortTime } from '../lib/api.js';
 export function renderDashboard(projects) {
   if (projects.length === 0) {
     return `<div class="page">
-      <div class="page__head">
-        <div>
-          <h1>Dự án của bạn</h1>
-          <p class="page__sub">Mỗi dự án là một đề bài kèm yêu cầu năng lực và ràng buộc riêng.</p>
-        </div>
-      </div>
+      <p class="page__sub">Mỗi dự án là một đề bài kèm yêu cầu năng lực và ràng buộc riêng.</p>
 
       <div class="blank">
         <div class="blank__icon" aria-hidden="true">◇</div>
@@ -52,14 +47,9 @@ export function renderDashboard(projects) {
     })
     .join('');
 
+  // Tiêu đề và nút "Dự án mới" đã nằm ở header phía trên, không lặp lại ở đây.
   return `<div class="page">
-    <div class="page__head">
-      <div>
-        <h1>Dự án của bạn</h1>
-        <p class="page__sub">${projects.length} dự án. Nhấn vào một dự án để xem đội hình đề xuất.</p>
-      </div>
-      <a class="btn" href="#/du-an/moi">+ Dự án mới</a>
-    </div>
+    <p class="page__sub">${projects.length} dự án. Nhấn vào một dự án để xem đội hình đề xuất.</p>
     <div class="card-grid">${cards}</div>
   </div>`;
 }

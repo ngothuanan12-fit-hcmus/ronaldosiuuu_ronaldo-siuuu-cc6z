@@ -118,6 +118,7 @@ cột `Lượt sửa` trỏ tới lượt đã khắc phục.
 | E8 | #17 | `REVIEWER` | **False negative trong `solve()`**: bước lọc sơ bộ loại người không đóng góp kỹ năng yêu cầu, nhưng những người đó vẫn có thể là người giúp đội đạt đủ `minTotalHours` → hệ thống báo **vô nghiệm sai** khi thực tế CÓ phương án. Nguy hiểm vì rơi đúng vào checkpoint 5 của video demo | `REVIEWER` đọc 5 tệp domain ở lượt #20 và chỉ ra, kèm dữ liệu tái tạo cụ thể | Thí sinh chuyển phát hiện của `REVIEWER` sang `AGENT` ở lượt #22 | Đã sửa: giữ nguyên tập thu hẹp để chạy nhanh, nhưng nếu không ra phương án nào thì **chạy lại trên tập đầy đủ** trước khi kết luận vô nghiệm. Kiểm chứng ca `Security≥2, quân số 2–3, ≥60h`: trước khi sửa báo vô nghiệm, sau khi sửa trả về 55 phương án (`retriedWithFullPool = true`) | #22 |
 | E9 | #22 | `AGENT` | **Agent tự làm hỏng encoding của `solver.js`**: dùng `Get-Content -Raw` (đọc theo ANSI trong PowerShell 5.1) rồi `Set-Content -Encoding UTF8` để sửa một chuỗi → toàn bộ tiếng Việt trong tệp biến thành mojibake (`Lõi` → `LÃµi`), tệp bị thêm BOM | Agent tự kiểm tra ngay sau lệnh: đọc lại tệp bằng `[IO.File]::ReadAllText(..., UTF8)` và khớp mẫu mojibake | Không cần prompt sửa — agent tự phát hiện và khôi phục | Khôi phục bằng cách encode chuỗi mojibake theo codepage 1252 rồi ghi lại dạng byte thô, bỏ BOM. `node --check` PASS, `try-solver.js` chạy lại đủ 8/8 ca biên. **Bài học: không dùng `Get-Content`/`Set-Content` cho tệp UTF-8 tiếng Việt, chỉ dùng công cụ Edit/Write** | #22 |
 | E10 | #27 | — (thí sinh) | **Sự cố bảo mật: API key thật của Google Stitch bị dán trực tiếp vào `.mcp.json`.** Tệp này nằm ở thư mục gốc và **không** bị `.gitignore` chặn tại thời điểm đó, nên chỉ cần một lệnh `git add -A` là khoá lên GitHub công khai — mất 20 điểm và lộ khoá thật | Agent nhận thông báo tệp thay đổi, đọc nội dung và thấy trường `env` chứa chuỗi khoá thật thay vì `${STITCH_API_KEY}` | Không cần prompt sửa — agent dừng việc đang làm và xử lý ngay | Xác minh khoá **chưa lọt vào commit nào**: `git log --all -- .mcp.json` rỗng và `git grep` trên toàn bộ `rev-list --all` không tìm thấy. Đã thêm `.mcp.json` (cùng `mcp.json`, `.cursor/mcp.json`, `.vscode/mcp.json`) vào `.gitignore`, tạo `.mcp.json.example` chỉ chứa placeholder để commit thay thế, cập nhật README. Quét lại mọi tệp đang theo dõi và sắp commit: sạch. **Khuyến nghị vẫn nên thu hồi và cấp lại khoá** vì khoá đã xuất hiện trong nội dung phiên chat mà thí sinh dự định chia sẻ link công khai làm bằng chứng | #27 |
+| E11 | #32 | `STITCH` | **Bản Tailwind xuất từ Stitch được đưa thẳng vào `source/public/`, thay ba tệp `index.html`, `app.js`, `styles.css`.** Bản đó không chạy được với backend: (1) nạp Tailwind qua CDN và hai `@import` Google Fonts → phá tiêu chí 0 phụ thuộc, vỡ giao diện khi mất mạng; (2) `app.js` đọc `meta.skills` và `meta.levels` nhưng `GET /api/meta` trả về `weights`, `componentLabels`, `limits` → ném lỗi ngay lúc khởi động, hiện alert "Không thể kết nối máy chủ"; (3) mất toàn bộ tích hợp `/api/projects`, không còn danh sách dự án, tạo, sửa, xoá, không còn hash routing; (4) sidebar có hai mục là link chết `javascript:void(0)` | Agent nhận thông báo tệp thay đổi, đọc lại cả ba tệp và đối chiếu với hợp đồng API thật của dự án | `thêm sidebar và header giống trong thư mục stitch... cho phù hợp với dự án` | Sửa bản Tailwind cho khớp backend là viết lại lần thứ tư, không kịp trong 36 phút còn lại. Đã **cất bản Tailwind vào thư mục tạm của phiên (không xoá)** và khôi phục ba tệp từ commit `927d36c`, rồi thêm header lên bản đang chạy được. **Bài học: sản phẩm của công cụ sinh giao diện là bản phác thảo thị giác, không phải mã chạy được — phải ráp lớp trình bày vào mã hiện có, không thay thế mã hiện có** | #32 |
 | E3 | #5 | `AGENT` | Script kiểm tra của agent in nhầm `IGNORED .env.example`, khiến tưởng tệp mẫu bị `.gitignore` chặn | Agent tự soát lại: `git check-ignore -v` in cả luật phủ định nên `if ($output)` bắt sai; kiểm lại bằng exit code | Không cần prompt sửa — agent tự đính chính trong cùng lượt | `.env.example` exit 1 (commit được), `.env` exit 0 (bị chặn). Không phải lỗi `.gitignore`, chỉ là lỗi cách đọc kết quả | #5 |
 
 ---
@@ -1065,4 +1066,55 @@ không tệp frontend nào tham chiếu ra mạng ngoài.
 
 ---
 
-<!-- Lượt tiếp theo: #32 -->
+### #32 — 17:19 — `AGENT` — ACCEPTED
+
+**Prompt:**
+> thêm sidebar và header giống trong thư mục stitch_squadfit_optimization_interface cho phù hợp
+> với dự án, hiện tại đang bị lỗi không gọi được npm start
+
+**Kết quả:**
+
+**a) Lỗi `npm start` không phải do mã nguồn.** Đọc stderr: `EADDRINUSE` — tiến trình PID 4104
+(máy chủ cũ chưa tắt) đang giữ cổng 3000. Đã tắt tiến trình đó.
+
+**b) Ba tệp frontend đã bị thay bằng bản Tailwind thô xuất từ Stitch** — xem lỗi **E11** ở mục 3.
+Bản đó không chạy được với backend của dự án. Agent **cất bản Tailwind vào thư mục tạm của phiên,
+không xoá**, rồi khôi phục ba tệp từ commit `927d36c`.
+
+**c) Thêm header** theo bố cục Stitch: thanh dính trên vùng nội dung, có nhãn phụ, tiêu đề trang,
+huy hiệu trạng thái và nút hành động chính. `setAppbar()` đổi tiêu đề theo tuyến đường, hiển thị
+số dự án ở bảng điều khiển và tên dự án khi đang làm việc.
+
+**Commit:** `ec810db` — Thêm header vùng nội dung; khôi phục bản giao diện chạy được [#30]
+
+---
+
+### #33 — 17:24 — `AGENT` — ACCEPTED
+
+**Prompt:** _(kèm 3 ảnh chụp màn hình)_
+> bỏ dòng trong ảnh 1
+> và chỉnh lại kích thước các khung thông tin, năng lực bắt buộc và quân số bắt buộc trong phần
+> tạo dự án mới cho giống với hình 2
+> xử lý vấn đề trong hình 3, chỉ giữ 1 trong hai nút tạo dự án mới
+
+**Kết quả:** Lượt đầu tiên trong phiên có **phản hồi thị giác thật** từ thí sinh. Ba sửa đổi:
+
+1. **Bỏ dòng ghi chú trong khối bối cảnh** (`.context__note` — câu về dữ liệu giả lập và không
+   lọc thông tin nhạy cảm). Nội dung này vẫn còn nguyên trong README mục 1.
+2. **Dựng lại form tạo dự án theo hình 2:** ba thẻ `.fcard` có **vạch màu 4px bên trái**
+   (xanh đen · vàng · xanh đen), tiêu đề kèm **icon SVG nội tuyến**, ô nhập cao 44px bo góc 6px
+   kèm văn bản gợi ý dạng "VD: 3", nhãn chữ thường thay cho nhãn viết hoa nhỏ, lưới 2×2 cho bốn
+   ô quân số, hàng thêm kỹ năng có đường kẻ đứt phân tách, mục kỹ năng cao 48px có chấm tròn và
+   chip "Mức 2", nút hành động dồn về bên phải, thêm liên kết "Quay lại danh sách".
+3. **Gỡ nút "+ Dự án mới" trùng lặp** trong thân trang bảng điều khiển, giữ nút ở header. Bỏ luôn
+   tiêu đề "Dự án của bạn" lặp lần hai vì header đã hiển thị tiêu đề trang.
+
+**Kiểm chứng:** `node --check` ba tệp PASS; mọi class đều có định nghĩa CSS; không tham chiếu
+mạng ngoài; máy chủ chạy trên cổng thay thế 3222 trả 200, HTML có `appbar`, đúng 3 `nav-item`,
+không còn `context__note`; `try:api` 45 PASS / 0 FAIL; `check-structure` PASS 32/32.
+
+**Commit:** _(chờ)_
+
+---
+
+<!-- Lượt tiếp theo: #34 -->

@@ -20,75 +20,88 @@ export function renderProjectForm({ project, skills }) {
   const isEdit = Boolean(project);
   draft = project ? JSON.parse(JSON.stringify(project)) : blank();
 
-  return `<div class="page page--narrow">
-    <div class="page__head">
-      <div>
-        <h1>${isEdit ? 'Sửa dự án' : 'Tạo dự án mới'}</h1>
-        <p class="page__sub">Khai báo đề bài và các điều kiện mà đội hình bắt buộc phải thoả mãn.</p>
-      </div>
-      <a class="btn btn--ghost btn--sm" href="${isEdit ? `#/du-an/${encodeURIComponent(project.id)}` : '#/'}">Huỷ</a>
+  const backHref = isEdit ? `#/du-an/${encodeURIComponent(project.id)}` : '#/';
+  const icon = (paths) =>
+    `<svg class="card-icon" viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
+
+  return `<div class="page page--form">
+    <a class="backlink" href="${backHref}">
+      <svg class="backlink__icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M19 12H5M11 18l-6-6 6-6" />
+      </svg>
+      ${isEdit ? 'Quay lại dự án' : 'Quay lại danh sách'}
+    </a>
+    <div>
+      <h2 class="form-title">${isEdit ? 'Sửa dự án' : 'Tạo dự án mới'}</h2>
+      <p class="page__sub">Thiết lập thông tin và yêu cầu nhân sự cho dự án hackathon.</p>
     </div>
 
     <form id="project-form" novalidate>
-      <section class="panel">
-        <div class="panel__head"><h2>Thông tin đề bài</h2></div>
-        <div class="panel__body">
-          <label class="field">
-            <span class="field__label">Tên đề bài <em>*</em></span>
-            <input type="text" id="f-name" class="input" required maxlength="120"
-              placeholder="Ví dụ: Nền tảng đặt lịch khám bệnh" />
+      <section class="fcard fcard--info">
+        <h3 class="fcard__head">
+          ${icon('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>')}
+          Thông tin đề bài
+        </h3>
+        <div class="fcard__body">
+          <label class="fgroup">
+            <span class="flabel">Tên dự án <em>*</em></span>
+            <input type="text" id="f-name" class="input input--lg" required maxlength="120"
+              placeholder="Nhập tên dự án (VD: Nền tảng đặt lịch khám bệnh)" />
           </label>
-          <label class="field">
-            <span class="field__label">Mô tả ngắn</span>
-            <textarea id="f-desc" class="input" rows="3"
-              placeholder="Sản phẩm làm gì, cho ai, có gì đặc biệt về mặt kỹ thuật"></textarea>
+          <label class="fgroup">
+            <span class="flabel">Mô tả chi tiết</span>
+            <textarea id="f-desc" class="input input--lg" rows="4"
+              placeholder="Mô tả mục tiêu, phạm vi và công nghệ dự kiến sử dụng…"></textarea>
           </label>
         </div>
       </section>
 
-      <section class="panel">
-        <div class="panel__head">
-          <h2>Năng lực bắt buộc</h2>
+      <section class="fcard fcard--skill">
+        <h3 class="fcard__head">
+          ${icon('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/>')}
+          Năng lực bắt buộc
           <span class="badge" id="f-skill-count">0</span>
-        </div>
-        <div class="panel__body">
-          <p class="hint">Đội hình hợp lệ phải phủ <strong>100%</strong> các năng lực này. Thiếu một mục là loại.</p>
+        </h3>
+        <div class="fcard__body">
           <ul class="req-list" id="f-req-list"></ul>
           <div class="req-add">
-            <select id="f-add-skill" class="input input--sm" aria-label="Chọn kỹ năng">
+            <span class="flabel req-add__label">Thêm kỹ năng yêu cầu</span>
+            <select id="f-add-skill" class="input" aria-label="Chọn kỹ năng">
               ${skills.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join('')}
             </select>
-            <select id="f-add-level" class="input input--sm" aria-label="Mức tối thiểu">
-              <option value="1">≥ 1 · Biết cơ bản</option>
-              <option value="2" selected>≥ 2 · Thành thạo</option>
-              <option value="3">≥ 3 · Chuyên sâu</option>
+            <select id="f-add-level" class="input" aria-label="Mức tối thiểu">
+              <option value="1">Mức 1 · Biết cơ bản</option>
+              <option value="2" selected>Mức 2 · Thành thạo</option>
+              <option value="3">Mức 3 · Chuyên sâu</option>
             </select>
-            <button type="button" class="btn btn--sm" id="f-add-btn">Thêm</button>
+            <button type="button" class="btn" id="f-add-btn">+ Thêm</button>
           </div>
+          <p class="hint">Đội hình hợp lệ phải phủ <strong>100%</strong> các năng lực này. Thiếu một mục là loại.</p>
         </div>
       </section>
 
-      <section class="panel">
-        <div class="panel__head"><h2>Quân số và ràng buộc</h2></div>
-        <div class="panel__body">
-          <div class="row">
-            <label class="row__item">
-              <span class="field__label">Tối thiểu</span>
-              <input type="number" id="f-min" class="input input--sm" min="1" max="8" />
+      <section class="fcard fcard--team">
+        <h3 class="fcard__head">
+          ${icon('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>')}
+          Quân số và ràng buộc
+        </h3>
+        <div class="fcard__body">
+          <div class="fgrid">
+            <label class="fgroup">
+              <span class="flabel">Số lượng tối thiểu</span>
+              <input type="number" id="f-min" class="input input--lg" min="1" max="8" placeholder="VD: 3" />
             </label>
-            <label class="row__item">
-              <span class="field__label">Tối đa</span>
-              <input type="number" id="f-max" class="input input--sm" min="1" max="8" />
+            <label class="fgroup">
+              <span class="flabel">Số lượng tối đa</span>
+              <input type="number" id="f-max" class="input input--lg" min="1" max="8" placeholder="VD: 5" />
             </label>
-          </div>
-          <div class="row">
-            <label class="row__item">
-              <span class="field__label">Tổng giờ cam kết tối thiểu</span>
-              <input type="number" id="f-hours" class="input input--sm" min="0" step="5" />
+            <label class="fgroup">
+              <span class="flabel">Tổng giờ/tuần yêu cầu</span>
+              <input type="number" id="f-hours" class="input input--lg" min="0" step="5" placeholder="VD: 40" />
             </label>
-            <label class="row__item">
-              <span class="field__label">Số người trình bày tối thiểu</span>
-              <input type="number" id="f-present" class="input input--sm" min="0" max="8" />
+            <label class="fgroup">
+              <span class="flabel">Số người trình bày</span>
+              <input type="number" id="f-present" class="input input--lg" min="0" max="8" placeholder="VD: 1" />
             </label>
           </div>
           <p class="hint">Quân số tối đa bị giới hạn ở 8 người để không gian tìm kiếm luôn hữu hạn.</p>
@@ -98,8 +111,8 @@ export function renderProjectForm({ project, skills }) {
       <div id="f-errors" hidden></div>
 
       <div class="form-actions">
+        <a class="btn btn--ghost" href="${backHref}">Huỷ</a>
         <button type="submit" class="btn" id="f-submit">${isEdit ? 'Lưu thay đổi' : 'Tạo dự án'}</button>
-        <a class="btn btn--ghost" href="${isEdit ? `#/du-an/${encodeURIComponent(project.id)}` : '#/'}">Huỷ</a>
       </div>
     </form>
   </div>`;
@@ -118,14 +131,15 @@ function paintForm(root) {
     ? draft.requiredSkills
         .map(
           (r, i) => `<li class="req-item">
+            <span class="req-item__dot" aria-hidden="true"></span>
             <span class="req-item__name">${esc(r.skill)}</span>
-            <span class="req-item__lvl">≥ ${r.minLevel}</span>
+            <span class="req-item__lvl">Mức ${r.minLevel}</span>
             <button type="button" class="btn btn--danger" data-remove="${i}"
               aria-label="Bỏ ${esc(r.skill)}">✕</button>
           </li>`
         )
         .join('')
-    : '<li class="hint">Chưa có năng lực nào. Không khai báo thì mọi đội hình đều được coi là phủ đủ.</li>';
+    : '<li class="req-empty">Chưa có năng lực nào. Không khai báo thì mọi đội hình đều được coi là phủ đủ.</li>';
 }
 
 function showErrors(root, list) {

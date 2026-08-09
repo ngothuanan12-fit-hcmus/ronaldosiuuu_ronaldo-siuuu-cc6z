@@ -426,21 +426,103 @@ form .panel { margin-bottom: 16px; }
 }
 .card__actions { display: flex; gap: 8px; }
 
+/* ─────────────────────── Form tạo / sửa dự án ─────────────────────── */
+
+.page--form { max-width: 920px; gap: 16px; }
+
+.backlink { display: inline-flex; align-items: center; gap: 8px; color: var(--fg-muted); font-size: 0.833rem; font-weight: 500; }
+.backlink:hover { color: var(--primary); }
+.backlink__icon { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+
+.form-title { font-size: 1.728rem; font-weight: 700; letter-spacing: -0.02em; }
+
+/* Thẻ có vạch màu bên trái để phân biệt ba nhóm trường */
+.fcard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: var(--r-container);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.fcard--info { border-left-color: var(--primary); }
+.fcard--skill { border-left-color: #d9a441; }
+.fcard--team { border-left-color: var(--primary); }
+.fcard__head {
+  display: flex; align-items: center; gap: 12px;
+  padding: 20px 24px 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+.fcard__head .badge { margin-left: auto; font-size: 0.833rem; }
+.card-icon {
+  width: 22px; height: 22px; flex: 0 0 22px;
+  fill: none; stroke: currentColor; stroke-width: 1.75;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.fcard__body { display: grid; gap: 20px; padding: 20px 24px 24px; }
+
+.fgroup { display: grid; gap: 8px; }
+.flabel { font-size: 0.833rem; font-weight: 500; color: var(--fg); text-transform: none; letter-spacing: 0; }
+.flabel em { color: var(--danger); font-style: normal; font-weight: 700; }
+.fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 640px) { .fgrid { grid-template-columns: 1fr; } }
+
+.input--lg { min-height: 44px; padding: 10px 14px; font-size: 0.9rem; border-radius: var(--r-container); }
+textarea.input--lg { min-height: 110px; }
+
+.form-actions {
+  display: flex; gap: 12px; align-items: center; justify-content: flex-end;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
 /* ─────────────────────────── Năng lực yêu cầu ─────────────────────────── */
 
-.req-list { display: grid; gap: 4px; }
+.req-list { display: grid; gap: 8px; }
 .req-item {
-  display: flex; align-items: center; gap: 8px;
-  min-height: 36px;
-  padding: 4px 4px 4px 12px;
+  display: flex; align-items: center; gap: 12px;
+  min-height: 48px;
+  padding: 8px 8px 8px 16px;
   background: var(--surface-low);
   border: 1px solid var(--border);
-  border-radius: var(--r-component);
-  font-size: 0.833rem;
+  border-radius: var(--r-container);
+  font-size: 0.9rem;
 }
+.req-item__dot { width: 8px; height: 8px; flex: 0 0 8px; border-radius: var(--r-full); background: var(--primary); }
 .req-item__name { flex: 1; font-weight: 500; }
-.req-item__lvl { color: var(--fg-muted); font-size: 0.694rem; font-variant-numeric: tabular-nums; }
-.req-add { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; }
+.req-item__lvl {
+  padding: 2px 10px;
+  background: var(--surface-variant, #e4e2e3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-component);
+  color: var(--fg-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.req-empty {
+  padding: 16px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-container);
+  color: var(--fg-muted);
+  font-size: 0.833rem;
+  text-align: center;
+}
+
+.req-add {
+  display: grid;
+  grid-template-columns: 1fr 220px auto;
+  gap: 12px;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px dashed var(--border-strong);
+}
+.req-add__label { grid-column: 1 / -1; margin-bottom: -4px; color: var(--fg-muted); font-size: 0.75rem; }
+.req-add .input { min-height: 44px; border-radius: var(--r-container); }
+.req-add .btn { min-height: 44px; padding: 0 20px; border-radius: var(--r-container); }
+@media (max-width: 720px) { .req-add { grid-template-columns: 1fr; } }
+
 .hint { margin: 0; font-size: 0.694rem; color: var(--fg-muted); }
 
 /* ─────────────────────────── Kho ứng viên ─────────────────────────── */
