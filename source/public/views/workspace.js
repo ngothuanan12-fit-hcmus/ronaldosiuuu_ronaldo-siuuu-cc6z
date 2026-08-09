@@ -217,13 +217,15 @@ function plansHtml(result) {
   return `
     <div class="tabs" role="tablist">${tabs}</div>
     <div class="summary">
-      <span class="stat"><b>${plan.members.length}</b> thành viên</span>
-      <span class="stat"><b>${plan.totalHours}</b> giờ/tuần</span>
-      <span class="stat"><b>${plan.presenters}</b> trình bày được</span>
-      <span class="stat"><b>${result.meta.validPlans.toLocaleString('vi-VN')}</b> đội hình hợp lệ</span>
+      <span class="stat"><b>${plan.members.length}</b> Quy mô</span>
+      <span class="stat"><b>${plan.totalHours}h</b> Tổng thời gian</span>
+      <span class="stat"><b>${plan.presenters}</b> Người trình bày</span>
+      <span class="stat"><b>${result.meta.validPlans.toLocaleString('vi-VN')}</b> Tổ hợp hợp lệ</span>
     </div>
-    ${coverageHtml(plan)}
-    ${membersHtml(plan)}
+    <div class="result-split">
+      ${coverageHtml(plan)}
+      ${membersHtml(plan)}
+    </div>
     ${whyHtml(plan, result)}`;
 }
 
@@ -244,44 +246,78 @@ function coverageHtml(plan) {
     )
     .join('');
 
-  return `<div class="block">
-    <h3 class="block__title">Yêu cầu đã được đáp ứng</h3>
-    <div class="table-wrap"><table>
-      <thead><tr><th>Trạng thái</th><th>Năng lực</th><th>Phụ trách chính</th><th>Dự phòng</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table></div>
-  </div>`;
+  const noBackup = plan.assignments.filter((a) => a.backups.length === 0).map((a) => a.skill);
+  const risk = noBackup.length
+    ? `<div class="alert alert--warn risk-note">
+        ⚠ Thiếu dự phòng cho ${noBackup.map((s) => `<strong>${esc(s)}</strong>`).join(', ')}.
+        Rủi ro cao nếu thành viên phụ trách chính vắng mặt.
+      </div>`
+    : '';
+
+  return `<section class="rcard">
+    <h3 class="rcard__head">Yêu cầu kỹ năng</h3>
+    <div class="rcard__body">
+      <div class="table-wrap"><table>
+        <thead><tr><th>OK</th><th>Kỹ năng</th><th>Chính</th><th>Dự phòng</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+      ${risk}
+    </div>
+  </section>`;
+}
+
+/** Chữ cái đầu của tên, dùng thay ảnh đại diện (không tải ảnh từ mạng ngoài). */
+function initial(name) {
+  const parts = String(name).trim().split(/\s+/);
+  return (parts[parts.length - 1][0] ?? '?').toUpperCase();
 }
 
 function membersHtml(plan) {
+  const lead = plan.members.reduce(
+    (best, m) => (m.assignedSkills.length > (best?.assignedSkills.length ?? -1) ? m : best),
+    null
+  );
+
   const cards = plan.members
     .map(
       (m) => `<div class="member${m.assignedSkills.length ? '' : ' member--idle'}">
-        <div class="member__name">${esc(m.name)}</div>
-        <div class="member__meta">Năm ${m.year} · ${m.hoursPerWeek}h/tuần</div>
-        <div class="cand__skills">${
-          m.assignedSkills.length
-            ? m.assignedSkills.map((x) => `<span class="chip chip--req">${esc(x)}</span>`).join('')
-            : '<span class="chip">dự phòng, không phụ trách chính</span>'
-        }</div>
+        <div class="member__top">
+          <span class="member__avatar">${esc(initial(m.name))}</span>
+          <span class="member__id">
+            <span class="member__name">${esc(m.name)}${
+              m === lead && m.assignedSkills.length > 1 ? ' <span class="pill pill--ok">chủ chốt</span>' : ''
+            }</span>
+            <span class="member__meta">Năm ${m.year} · ${m.hoursPerWeek}h/tuần</span>
+          </span>
+        </div>
+        <div class="member__roles">
+          <span class="member__rolelabel">Vai trò chính:</span>
+          <span class="cand__skills">${
+            m.assignedSkills.length
+              ? m.assignedSkills.map((x) => `<span class="chip chip--req">${esc(x)}</span>`).join('')
+              : '<span class="chip">dự phòng, không phụ trách chính</span>'
+          }</span>
+        </div>
       </div>`
     )
     .join('');
 
-  return `<div class="block">
-    <h3 class="block__title">Phân bổ vai trò</h3>
-    <div class="member-grid">${cards}</div>
-  </div>`;
+  return `<section class="rcard">
+    <h3 class="rcard__head">Phân bổ vai trò</h3>
+    <div class="rcard__body">
+      <div class="member-grid">${cards}</div>
+    </div>
+  </section>`;
 }
 
 function whyHtml(plan, result) {
   const rows = plan.breakdown
     .map(
-      (c) => `<tr>
-        <td>${esc(c.label)}</td>
-        <td style="width:34%"><span class="bar"><i style="width:${Math.round(c.ratio * 100)}%"></i></span></td>
-        <td class="num">${c.points} / ${c.weight}</td>
-      </tr>`
+      (c) => `<div class="score-row">
+        <span class="score-row__label">${esc(c.label)}</span>
+        <span class="score-row__value">${c.points}/${c.weight}</span>
+        <span class="bar"><i style="width:${Math.round(c.ratio * 100)}%"></i></span>
+      </div>`
     )
     .join('');
 
@@ -292,15 +328,16 @@ function whyHtml(plan, result) {
         ? `<ul class="why">${result.comparisons.map((c) => `<li>${esc(c.text)}</li>`).join('')}</ul>`
         : '<p class="hint">Chỉ có một phương án hợp lệ, không có gì để so sánh.</p>';
 
-  return `<div class="block">
-    <h3 class="block__title">Vì sao phương án này tối ưu</h3>
-    <div class="table-wrap"><table>
-      <thead><tr><th>Tiêu chí</th><th>Mức đạt</th><th class="num">Điểm</th></tr></thead>
-      <tbody>${rows}</tbody>
-      <tfoot><tr><th>Tổng</th><th></th><th class="num">${plan.score} / 100</th></tr></tfoot>
-    </table></div>
-    ${compare}
-  </div>`;
+  return `<section class="rcard">
+    <div class="rcard__head rcard__head--score">
+      <span>Đánh giá tối ưu</span>
+      <span class="score-total">${plan.score}<small>/100</small></span>
+    </div>
+    <div class="rcard__body">
+      <div class="score-list">${rows}</div>
+      ${compare}
+    </div>
+  </section>`;
 }
 
 function diagnosisHtml(d) {
