@@ -67,6 +67,12 @@ data/
 storage/
 !storage/.gitkeep
 
+# NGOẠI LỆ BẮT BUỘC: source/data/ KHÔNG phải thư mục dữ liệu chạy máy, mà là
+# MÃ NGUỒN — ba mô-đun ES chứa hồ sơ ứng viên, bảng kỹ năng và kịch bản mẫu.
+# Luật "data/" ở trên (viết cho thư mục DB của ORM) đã vô tình nuốt mất chúng,
+# khiến bản clone từ GitHub không chạy được. Gỡ loại trừ cho đúng thư mục này.
+!source/data/
+
 # CỐ Ý KHÔNG loại trừ: prisma/schema.prisma, prisma/migrations/,
 # drizzle/meta/ — đây là mã nguồn, phải được commit.
 
