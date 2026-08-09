@@ -1335,7 +1335,7 @@ biểu thức kiểm tra thô suýt dẫn tới kết luận sai (lần trước
 nhấp thật trong trình duyệt. Cần xác nhận bằng tay: mở app, tạo 2 dự án, xoá 1, quay lại danh
 sách, xoá tiếp cái còn lại — hộp xác nhận chỉ được bật **đúng một lần** và không có cảnh báo lỗi.
 
-**Commit:** `a786989` "Sửa nút xoá chạy nhiều lần do trình lắng nghe chồng chất [#38]" — 18:47:52
+**Commit:** `a786989` "Sửa nút xoá chạy nhiều lần do trình lắng nghe chồng chất [#38]" — 18:47:00
 
 ---
 
