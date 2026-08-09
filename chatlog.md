@@ -109,7 +109,7 @@ cột `Lượt sửa` trỏ tới lượt đã khắc phục.
 | # | Lượt | AI | Hiện tượng | Cách phát hiện | Prompt đã dùng để sửa | Kết quả | Lượt sửa |
 |---|---|---|---|---|---|---|---|
 | E1 | #4 | `AGENT` | Tạo thư mục mã nguồn tên `src/` trong khi hệ thống chấm bắt buộc `source/` tại thư mục gốc. Đây là lỗi pass/fail: cấu trúc khi đó đang 0/20 điểm | Thí sinh gửi prompt chấm công khai ở lượt #6; agent đối chiếu và tự phát hiện. Không có công cụ nào báo lỗi vì code vẫn chạy bình thường | Không cần prompt sửa riêng — agent tự nêu ngay khi phát hiện; thí sinh xác nhận ở lượt #7 | Đã đổi tên `src/` → `source/`, cập nhật `package.json` và `submission.json`. Kiểm chứng lại: 5 mục bắt buộc PASS | #7 |
-| E2 | #8 | `AGENT` | `submission.json` do agent tự thiết kế ở lượt #4 dùng cấu trúc lồng (`team.name`, `structure.sourceDirectory`) không khớp schema phẳng mà thí sinh nêu (`team_name`, `login`, `source_paths`, `dependency_files`, `schema_version`) | `scripts/check-structure.js` chạy lần đầu báo FAIL 8/31, chỉ đúng 5 trường thiếu và 3 lỗi dây chuyền | Chưa sửa — agent nêu mâu thuẫn và **hỏi trước** thay vì tự đổi, vì prompt chấm công khai nói rõ "không tự suy đoán field nghiệp vụ khi chưa có schema riêng" | **Đang treo.** Cần thí sinh xác nhận schema nào đúng và giá trị thật của `schema_version` | _(chưa)_ |
+| E2 | #8 | `AGENT` | `submission.json` do agent tự thiết kế ở lượt #4 dùng cấu trúc lồng (`team.name`, `structure.sourceDirectory`) không khớp schema phẳng mà thí sinh nêu (`team_name`, `login`, `source_paths`, `dependency_files`, `schema_version`) | `scripts/check-structure.js` chạy lần đầu báo FAIL 8/31, chỉ đúng 5 trường thiếu và 3 lỗi dây chuyền | Chưa sửa — agent nêu mâu thuẫn và **hỏi trước** thay vì tự đổi, vì prompt chấm công khai nói rõ "không tự suy đoán field nghiệp vụ khi chưa có schema riêng" | **Đã đóng ở lượt #26.** Thí sinh xác nhận dùng schema phẳng; agent viết lại `submission.json` theo đúng 5 trường bắt buộc. `npm run check` chuyển từ 23/31 sang **32/32 PASS, exit 0**. Giá trị `schema_version` đặt `"1.0"` — **vẫn chưa được ban tổ chức xác nhận** | #26 |
 | E4 | #17 | `AGENT` | Công thức "độ dư thừa phủ kỹ năng" ban đầu chỉ chấm đạt/không đạt (có ≥2 người là 1 điểm), khiến **cả 3 phương án đứng đầu bằng đúng 80.47 điểm** — báo cáo giải thích không nói được vì sao #1 hơn #2 | Chạy `node scripts/try-solver.js`, đọc kết quả kịch bản "Dễ": ba đội chỉ khác nhau đúng một người mà cùng điểm | Không cần prompt sửa — agent tự phát hiện khi đọc output và sửa trong cùng lượt | Đổi sang thang phân bậc, kết hợp lấy trung bình 2 mức cao nhất thay vì 1 | #17 |
 | E5 | #17 | `AGENT` | Bản vá E4 lần 1 (thang tuyến tính `(count-1)/2`) gây **hồi quy**: thuật toán bắt đầu ưu tiên dồn 2 người dự phòng vào một kỹ năng thay vì phủ đều — phương án đứng đầu có Backend **không có dự phòng nào** | Chạy lại `try-solver.js`, thấy phương án #1 hiển thị "Backend: KHÔNG có dự phòng" mà vẫn xếp trên | Không cần prompt sửa — agent tự phát hiện ngay ở lần chạy kế tiếp | Đổi sang thang 0 / 0.8 / 1.0 có bước nhảy lớn ở người dự phòng đầu tiên → phủ đều luôn thắng dồn cục bộ | #17 |
 | E6 | #17 | `AGENT` | Khi `requiredSkills` rỗng, bước lọc sơ bộ loại sạch ứng viên (vì không ai "đóng góp kỹ năng yêu cầu") → hệ thống báo vô nghiệm sai, đáng lẽ mọi đội hình đều hợp lệ | Ca biên "Không khai báo năng lực nào" trong `try-solver.js` trả về "vô nghiệm" thay vì "ok" | Không cần prompt sửa — ca biên do chính agent viết đã bắt được | Thêm điều kiện: chưa khai báo năng lực nào thì không có căn cứ loại ai, giữ nguyên toàn bộ pool | #17 |
@@ -867,4 +867,41 @@ bề mặt mềm nền sáng ấm.
 
 ---
 
-<!-- Lượt tiếp theo: #26 -->
+### #26 — 16:22 — `AGENT` — ACCEPTED
+
+**Prompt:**
+> dùng schema phẳng mà thí sinh nêu (team_name, login, source_paths, dependency_files, schema_version)
+> tự điền readme, link github https://github.com/ngothuanan12-fit-hcmus/ronaldosiuuu_ronaldo-siuuu-cc6z.git
+> chỉ chừa lại link video chưa có
+
+**Kết quả:**
+
+**a) Viết lại `submission.json` theo schema phẳng** — đóng lỗi **E2** treo từ lượt #8.
+Năm trường bắt buộc: `schema_version: "1.0"`, `team_name: "ronaldosiuuu"`,
+`login: "ronaldo-siuuu-cc6z"`, `source_paths: ["source"]`, `dependency_files: ["package.json"]`.
+Giữ thêm các trường bổ trợ: tên sản phẩm, mô tả, link repository, danh sách thành viên, stack,
+lệnh chạy, entrypoint, biến môi trường, khai báo sử dụng AI.
+`team_name` + `_` + `login` khớp chính xác tên thư mục gốc.
+
+**b) Điền toàn bộ README**, 11 mục, chỉ chừa **link video demo**:
+- Mục 2 cập nhật theo tính năng thật của bản v2 (9 dòng, 8 đã xong, 1 chưa làm).
+- Mục 3 ghi phiên bản đã kiểm thử thật: Windows 11, Node.js v24.11.0, npm 11.6.1.
+- Mục 5 vẽ lại cây thư mục khớp 31 tệp thực tế, có chú thích vai trò từng tệp.
+- **Mục 6 là mục mới** — ghi lại ba quyết định kiến trúc và cái đánh đổi của từng quyết định:
+  thuật toán chạy hoàn toàn trên máy chủ; hai tầng trạng thái trái ngược nhau; duyệt tổ hợp
+  thay vì thuật toán tham lam.
+- Mục 7 ghi số liệu kiểm thử thật; mục 9 liệt kê 6 hạn chế đã biết kèm 6 hướng phát triển.
+- Điền link repository, giấy phép MIT.
+
+**c) Kiểm chứng:** `npm run check` chuyển từ **23 PASS / 8 FAIL** sang **32 PASS / 0 FAIL**,
+exit code 0.
+
+**Điểm chưa chắc chắn cần nêu:** giá trị `schema_version = "1.0"` là do agent đặt, **ban tổ chức
+chưa xác nhận**. Nếu con số thật khác, sửa một dòng trong `submission.json` và một hằng số trong
+`scripts/check-structure.js`.
+
+**Commit:** _(chờ)_
+
+---
+
+<!-- Lượt tiếp theo: #27 -->

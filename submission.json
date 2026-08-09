@@ -1,66 +1,70 @@
 {
-  "team": {
-    "name": "ronaldosiuuu",
-    "username": "ronaldo-siuuu-cc6z"
-  },
-  "submission": {
-    "rootDirectory": "ronaldosiuuu_ronaldo-siuuu-cc6z",
-    "title": "",
-    "description": "",
-    "repositoryUrl": "",
-    "demoUrl": "",
-    "submittedAt": "2026-08-09T18:00:00+07:00"
-  },
-  "structure": {
-    "readme": "README.md",
-    "chatlog": "chatlog.md",
-    "manifest": "submission.json",
-    "gitignore": ".gitignore",
-    "dependencyManifest": "package.json",
-    "sourceDirectory": "source/"
-  },
+  "schema_version": "1.0",
+  "team_name": "ronaldosiuuu",
+  "login": "ronaldo-siuuu-cc6z",
+  "source_paths": ["source"],
+  "dependency_files": ["package.json"],
+
+  "project_name": "SquadFit",
+  "description": "Công cụ web giúp ban tổ chức hackathon sinh viên tự động lập đội hình tối ưu từ kho ứng viên, dựa trên ràng buộc đa biến, kèm báo cáo giải thích và chẩn đoán khi vô nghiệm.",
+  "repository_url": "https://github.com/ngothuanan12-fit-hcmus/ronaldosiuuu_ronaldo-siuuu-cc6z",
+  "demo_video_url": "",
+
+  "members": [
+    { "name": "Ngô Thuận An", "role": "Kỹ sư Điều phối AI" },
+    { "name": "Nguyễn Nhật Vy", "role": "Kỹ sư Trình bày" }
+  ],
+
   "stack": {
     "language": "JavaScript (ESM)",
     "runtime": "Node.js",
-    "version": ">=18",
-    "frameworks": []
+    "min_version": "18",
+    "frameworks": [],
+    "external_dependencies": 0
   },
+
   "commands": {
     "install": "",
     "build": "",
     "start": "npm start",
-    "test": "npm test"
+    "test": "npm test",
+    "check_structure": "npm run check",
+    "try_solver": "npm run try:solver",
+    "try_api": "npm run try:api"
   },
+
   "entrypoint": "source/server.js",
+
   "environment": {
-    "exampleFile": ".env.example",
-    "requiredVariables": []
+    "example_file": "",
+    "required_variables": [],
+    "optional_variables": [
+      { "name": "PORT", "default": "3000", "description": "Cổng của máy chủ" }
+    ]
   },
-  "aiUsage": {
-    "allCodeAiGenerated": true,
-    "manualCodeEdits": false,
-    "chatlogFile": "chatlog.md",
+
+  "ai_usage": {
+    "all_code_ai_generated": true,
+    "manual_code_edits": false,
+    "chatlog_file": "chatlog.md",
     "assistants": [
       {
         "id": "AGENT",
         "name": "Claude Code (Opus 5)",
         "role": "Agent chính, sinh toàn bộ mã nguồn",
-        "surface": "IDE",
-        "sessionLinks": []
+        "surface": "IDE"
       },
       {
         "id": "REVIEWER",
-        "name": "",
-        "role": "Review code, soát lỗi",
-        "surface": "browser",
-        "sessionLinks": []
+        "name": "AI phụ #1",
+        "role": "Soát lỗi mã nguồn",
+        "surface": "IDE"
       },
       {
         "id": "DOCS",
-        "name": "",
-        "role": "Soạn tài liệu",
-        "surface": "browser",
-        "sessionLinks": []
+        "name": "Claude Opus 4.6 (Thinking)",
+        "role": "Soạn tài liệu, kịch bản video",
+        "surface": "IDE"
       }
     ]
   }
