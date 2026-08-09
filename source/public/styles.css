@@ -634,12 +634,19 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   white-space: nowrap;
 }
 .pill--ok { background: var(--ok-soft); color: var(--ok); }
+.pill--lvl { background: var(--surface-low); border: 1px solid var(--border); color: var(--fg-muted); }
 .pill--warn { background: var(--warn-soft); color: var(--warn); }
 .pill--bad { background: var(--danger-soft); color: var(--danger-fg); }
 
 /* Báo cáo: hai thẻ cạnh nhau — Yêu cầu kỹ năng | Phân bổ vai trò */
-.result-split { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.5fr); gap: 16px; align-items: start; }
+/* Cột kỹ năng rộng hơn vì chứa bảng 4 cột; cột vai trò hẹp lại, xếp một hàng dọc. */
+.result-split { display: grid; grid-template-columns: minmax(440px, 1.75fr) minmax(240px, 1fr); gap: 16px; align-items: start; }
 @media (max-width: 1200px) { .result-split { grid-template-columns: 1fr; } }
+
+/* Vạch màu đầu thẻ để phân biệt hai khối, theo bản thiết kế */
+.rcard { border-top: 3px solid var(--primary); }
+.rcard--skill { border-top-color: var(--ok); }
+.rcard--score { border-top-color: #d9a441; }
 
 .rcard {
   background: var(--surface);
@@ -654,8 +661,23 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   font-weight: 600;
 }
 .rcard__head--score { justify-content: space-between; align-items: baseline; }
-.rcard__body { padding: 16px 20px 20px; display: grid; gap: 16px; }
+.rcard__body { padding: 16px 20px 20px; display: grid; gap: 16px; min-width: 0; }
 .risk-note { font-size: 0.78rem; }
+
+/* Bảng phủ năng lực: không để chữ bị cắt hay xuống dòng vụn */
+.rcard .table-wrap { overflow-x: auto; }
+.rcard table { min-width: 420px; }
+.rcard td, .rcard th { vertical-align: top; }
+.cov-skill { white-space: nowrap; font-weight: 600; }
+.cov-skill .req-item__lvl { display: inline-block; margin-left: 6px; padding: 1px 6px; }
+.cov-name { min-width: 130px; }
+.cov-name b { display: block; font-weight: 600; }
+.cov-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.cov-backup { min-width: 120px; color: var(--fg-muted); font-size: 0.78rem; }
+.cov-ok { width: 28px; text-align: center; color: var(--ok); font-weight: 700; }
+
+/* Cột vai trò hẹp → thẻ thành viên xếp một hàng dọc */
+.rcard .member-grid { grid-template-columns: 1fr; }
 
 .score-total { font-size: 1.728rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
 .score-total small { font-size: 0.833rem; font-weight: 500; color: var(--fg-muted); }

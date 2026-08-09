@@ -233,13 +233,18 @@ function coverageHtml(plan) {
   const rows = plan.assignments
     .map(
       (a) => `<tr>
-        <td><span class="pill pill--ok">đạt</span></td>
-        <td>${esc(a.skill)} <span class="req-item__lvl">≥ ${a.minLevel}</span></td>
-        <td>${esc(a.primary.name)} <span class="req-item__lvl">mức ${a.primary.level}</span>
-          ${a.primary.matchesPreferredRole ? '<span class="pill pill--ok">đúng vai trò</span>' : ''}</td>
-        <td>${
+        <td class="cov-ok" title="Đã phủ">✓</td>
+        <td class="cov-skill">${esc(a.skill)}<span class="req-item__lvl">≥ ${a.minLevel}</span></td>
+        <td class="cov-name">
+          <b>${esc(a.primary.name)}</b>
+          <span class="cov-tags">
+            <span class="pill pill--lvl">mức ${a.primary.level}</span>
+            ${a.primary.matchesPreferredRole ? '<span class="pill pill--ok">đúng vai trò</span>' : ''}
+          </span>
+        </td>
+        <td class="cov-backup">${
           a.backups.length
-            ? a.backups.map((b) => `${esc(b.name)} (${b.level})`).join(', ')
+            ? a.backups.map((b) => `${esc(b.name)} (${b.level})`).join('<br />')
             : '<span class="pill pill--warn">không có dự phòng</span>'
         }</td>
       </tr>`
@@ -254,7 +259,7 @@ function coverageHtml(plan) {
       </div>`
     : '';
 
-  return `<section class="rcard">
+  return `<section class="rcard rcard--skill">
     <h3 class="rcard__head">Yêu cầu kỹ năng</h3>
     <div class="rcard__body">
       <div class="table-wrap"><table>
@@ -328,7 +333,7 @@ function whyHtml(plan, result) {
         ? `<ul class="why">${result.comparisons.map((c) => `<li>${esc(c.text)}</li>`).join('')}</ul>`
         : '<p class="hint">Chỉ có một phương án hợp lệ, không có gì để so sánh.</p>';
 
-  return `<section class="rcard">
+  return `<section class="rcard rcard--score">
     <div class="rcard__head rcard__head--score">
       <span>Đánh giá tối ưu</span>
       <span class="score-total">${plan.score}<small>/100</small></span>
