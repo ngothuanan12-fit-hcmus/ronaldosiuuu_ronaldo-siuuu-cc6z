@@ -717,4 +717,120 @@ PowerShell round-trip, khôi phục ngay trong lượt.
 
 ---
 
-<!-- Lượt tiếp theo: #23 -->
+### #23 — 15:47 — `AGENT` — NO-CODE
+
+**Prompt:**
+> giờ thiết kế giao diện web thực hiện chức năng như một web thật chứ không theo kịch bản mẫu
+> nữa, lên lại kế hoạch để xây dựng giao diện phù hợp với logic của đề bài
+
+**Kết quả:** Lập kế hoạch xây lại giao diện thành ứng dụng web thật. **Chưa tạo tệp nào.**
+
+**Điểm agent nêu ngược lại yêu cầu:** không nên xoá hẳn kịch bản mẫu, vì checkpoint 5 của video
+là demo trường hợp vô nghiệm — gõ tay dựng lại tình huống đó giữa lúc quay sẽ tốn ~40 giây và
+dễ hỏng take. Đề xuất chuyển 3 kịch bản thành **3 dự án mẫu có sẵn trong danh sách dự án**,
+đúng cách một sản phẩm thật xử lý dữ liệu mẫu, mà vẫn một cú nhấp là tới CP5.
+
+**Kiến trúc thông tin mới** (hash routing, không cần thư viện):
+`#/` bảng điều khiển danh sách dự án → `#/du-an/moi` trình tạo → `#/du-an/:id` không gian làm
+việc 3 tab (Tổng quan · Ứng viên · Đội hình) → `#/du-an/:id/chot` bản chốt đội hình in được.
+
+**Thay đổi kiến trúc backend đề xuất:** tách đôi rõ ràng — `/api/projects` CRUD **có trạng thái**
+trong bộ nhớ máy chủ, còn `POST /api/solve` **giữ nguyên không trạng thái**. Lập luận: dữ liệu
+người dùng nhập cần bền, còn kết quả tính toán không bao giờ được bền, vì bền chính là nguồn gốc
+của việc hiển thị kết quả cũ đã hết hợp lệ — đúng yêu cầu 3.4 đề bài.
+
+**Hai mức phạm vi:** Mức A ~1h20 (4 bước R1–R4, còn ~50 phút đệm) — **khuyến nghị**;
+Mức B ~2h10 (thêm wizard, ngăn kéo hồ sơ, bảng sắp xếp đa cột, toast, so sánh dự án) —
+**không khuyến nghị vì đệm bằng 0**.
+
+**Tái sử dụng:** khoảng 70% code render hiện có dùng lại được; toàn bộ tầng `domain/` và
+`POST /api/solve` **không đổi một dòng** — lợi ích trực tiếp của việc tách domain khỏi HTTP.
+
+**Rủi ro nêu trước:** đây là lần viết lại thứ hai của cùng một phần; thí sinh **chưa xem bản v1
+bằng mắt** nên có thể tồn tại lỗi hiển thị chưa biết và sẽ bị chép sang v2; điểm quyết định 16:40.
+
+**Commit:** — (không sinh commit; lượt lập kế hoạch, chờ thí sinh quyết định)
+
+---
+
+### #24 — 15:50 — `AGENT` — ACCEPTED
+
+**Prompt:**
+> thực hiện mức A chia thành 2 phiên
+> Mình muốn danh sách dự án trống hoàn toàn lúc mở app
+> đồng ý cho /api/projects
+> đây là quyết định đánh đổi về cấu trúc và cách xử lý cốt lõi (ghi lại phần này vào chatlog)
+
+---
+
+#### ⚖️ QUYẾT ĐỊNH ĐÁNH ĐỔI VỀ CẤU TRÚC VÀ CÁCH XỬ LÝ CỐT LÕI
+
+**Quyết định:** tách máy chủ thành hai tầng có bản chất trái ngược nhau.
+
+| | `/api/projects` | `/api/solve` |
+|---|---|---|
+| Trạng thái | **CÓ** — `Map` trong bộ nhớ tiến trình | **KHÔNG** — hàm thuần |
+| Lưu gì | Dữ liệu người dùng nhập: tên đề bài, năng lực yêu cầu, ràng buộc, ứng viên đã tắt | Không lưu gì. Nhận vào, tính, trả ra, quên |
+| Vì sao | Người dùng nhập một lần rồi quay lại nhiều lần; mất là mất công nhập lại | Kết quả **không bao giờ** được phép bền |
+
+**Lập luận cốt lõi:** mục 3.4 đề bài yêu cầu *"các kết quả không còn thoả mãn điều kiện phải bị
+loại bỏ lập tức khỏi trạng thái hợp lệ"*. Cách rẻ nhất và chắc chắn nhất để đạt điều đó không
+phải là viết code dọn cache cho đúng — mà là **không có cache nào để dọn**. Mỗi thay đổi bất kỳ
+đều gọi lại `POST /api/solve` từ đầu với dữ liệu hiện tại; kết quả trên màn hình luôn là kết quả
+của đúng dữ liệu vừa gửi đi, không tồn tại đường đi nào dẫn tới hiển thị kết quả cũ.
+
+**Cái đánh đổi:**
+- **Được:** không thể có trạng thái lệch giữa client và server ở phần tính toán; dự án thì vẫn
+  bền qua tải lại trang và nhiều tab; tầng `domain/` không đổi một dòng nào, vẫn không biết HTTP
+  tồn tại — bằng chứng là `npm run try:solver` chạy đủ thuật toán mà không khởi động máy chủ.
+- **Mất:** dự án chỉ nằm trong bộ nhớ tiến trình, **khởi động lại máy chủ là mất sạch**. Không
+  ghi xuống đĩa. Đây là chủ ý cho prototype 6 giờ, không phải thiếu sót, và sẽ ghi rõ trong README.
+- **Mất:** mỗi lần bấm là một vòng gọi máy chủ (~1–95ms tuỳ kịch bản) thay vì tính ngay trong
+  trình duyệt. Chấp nhận được, và đổi lại toàn bộ thuật toán nằm ở backend đúng như định hướng
+  muốn thể hiện.
+
+**Quyết định thứ hai — danh sách dự án khởi tạo RỖNG.** Thí sinh chọn phương án này thay vì
+nạp sẵn 3 dự án mẫu. Agent đã nêu rủi ro ở lượt #23 (khi quay checkpoint 5 phải gõ tay dựng lại
+tình huống vô nghiệm) và thí sinh vẫn giữ quyết định. Cách dung hoà đã thực hiện: **danh sách
+dự án rỗng đúng như yêu cầu**, còn 3 mẫu dựng sẵn được đưa vào **bên trong form tạo mới** dưới
+dạng nút "Bắt đầu từ mẫu" (`GET /api/templates`, tách hẳn khỏi `GET /api/projects`). Mở app vẫn
+thấy màn hình rỗng; lúc quay video vẫn tới CP5 trong hai cú nhấp.
+
+---
+
+**Kết quả phiên 1 (R1 + R2):**
+
+*Backend:*
+- `source/api/validation.js` — tách `validateProject` và `validateCandidates` ra module dùng
+  chung cho cả `solve` lẫn `projects`, thêm kiểm tra trùng kỹ năng và tên rỗng.
+- `source/api/projects.js` — kho `Map` trong bộ nhớ, khởi tạo rỗng; 7 route CRUD; hàm
+  `sanitize()` loại bỏ mọi trường lạ client gửi kèm; `GET /api/templates` tách riêng.
+- `source/api/router.js` — thêm khớp đường dẫn có tham số (`/api/projects/:id`) bằng cách biên
+  dịch mẫu thành regex, có thoát ký tự đặc biệt.
+- `source/api/handlers.js` — dùng module validation chung, gộp `projectRoutes`.
+
+*Frontend — viết lại thành ứng dụng nhiều trang:*
+- `index.html` — khung ứng dụng: thanh trên, khối bối cảnh, `<main id="view">`.
+- `app.js` — router hash 4 tuyến, tải dữ liệu tham chiếu một lần, xử lý lỗi tập trung.
+- `lib/api.js`, `lib/store.js` — lớp gọi API và dữ liệu tham chiếu.
+- `views/dashboard.js` — danh sách dự án + **trạng thái rỗng** có hướng dẫn; xoá có xác nhận.
+- `views/project-form.js` — form tạo/sửa, kiểm tra tại chỗ trước khi gọi máy chủ, nút chọn mẫu.
+- `views/workspace.js` — kho ứng viên + kết quả + báo cáo 3 khối; lưu trạng thái khả dụng /
+  bắt buộc / loại trừ lên máy chủ bằng `PATCH` có debounce.
+
+**Kiểm chứng:** `npm run try:api` **45 PASS / 0 FAIL** (thêm 15 ca cho vòng đời dự án, trong đó
+có ca *"danh sách khởi tạo RỖNG"*); `npm run try:solver` 8/8 ca biên PASS; 6 module frontend
+`node --check` PASS; không tệp nào tham chiếu ra mạng ngoài.
+
+**Một sai sót trong quá trình kiểm tra:** lần chạy thử đầu tiên báo `/api/projects` lỗi 404.
+Nguyên nhân không phải code mà là **một máy chủ cũ từ lần kiểm tra trước vẫn đang giữ cổng 3000**,
+nên đang phục vụ bản v1. Sau khi dừng tiến trình cũ, mọi endpoint trả 200 đúng như mong đợi.
+
+**Còn lại cho phiên 2:** tách không gian làm việc thành 3 tab (Tổng quan · Ứng viên · Đội hình),
+bảng ứng viên sắp xếp được, trang chốt đội hình in được, trạng thái rỗng/đang tải chi tiết hơn.
+
+**Commit:** _(chờ)_
+
+---
+
+<!-- Lượt tiếp theo: #25 -->

@@ -148,6 +148,56 @@ try {
     check('endpoint không tồn tại → 404', r.status === 404, `nhận ${r.status}`);
   }
 
+  console.log('\n/api/projects — vòng đời một dự án');
+  {
+    let r = await call('GET', '/api/projects');
+    check('danh sách khởi tạo RỖNG', r.status === 200 && r.json?.total === 0, `nhận total=${r.json?.total}`);
+
+    r = await call('GET', '/api/templates');
+    check('có 3 mẫu dựng sẵn (tách khỏi danh sách dự án)', r.json?.templates?.length === 3);
+
+    r = await call('POST', '/api/projects', { project: { name: '' } });
+    check('tạo dự án không tên → 400', r.status === 400, `nhận ${r.status}`);
+
+    r = await call('POST', '/api/projects', {
+      project: {
+        name: 'Dự án kiểm thử',
+        requiredSkills: [{ skill: 'Frontend', minLevel: 2 }],
+        teamSize: { min: 3, max: 5 },
+        constraints: { minTotalHours: 40, minPresenters: 0, mustInclude: [], mustExclude: [] },
+      },
+    });
+    check('tạo dự án hợp lệ → 201', r.status === 201, `nhận ${r.status}`);
+    const id = r.json?.project?.id;
+    check('có id và mốc thời gian', typeof id === 'string' && typeof r.json?.project?.createdAt === 'string');
+
+    r = await call('GET', '/api/projects');
+    check('danh sách còn 1 dự án', r.json?.total === 1, `nhận ${r.json?.total}`);
+
+    r = await call('GET', `/api/projects/${id}`);
+    check('đọc lại theo id → 200', r.status === 200, `nhận ${r.status}`);
+
+    r = await call('PATCH', `/api/projects/${id}`, { project: { name: 'Đã đổi tên' } });
+    check('sửa dự án → 200', r.status === 200, `nhận ${r.status}`);
+    check('  tên đã đổi', r.json?.project?.name === 'Đã đổi tên');
+    check('  updatedAt thay đổi', r.json?.project?.updatedAt >= r.json?.project?.createdAt);
+
+    r = await call('PATCH', `/api/projects/${id}`, { project: { requiredSkills: [{ skill: 'Bịa', minLevel: 1 }] } });
+    check('sửa bằng kỹ năng không tồn tại → 400', r.status === 400, `nhận ${r.status}`);
+
+    r = await call('GET', '/api/projects/khong-ton-tai');
+    check('đọc id không tồn tại → 404', r.status === 404, `nhận ${r.status}`);
+
+    r = await call('DELETE', `/api/projects/${id}`);
+    check('xoá dự án → 200', r.status === 200, `nhận ${r.status}`);
+
+    r = await call('GET', '/api/projects');
+    check('danh sách rỗng trở lại', r.json?.total === 0, `nhận ${r.json?.total}`);
+
+    r = await call('DELETE', `/api/projects/${id}`);
+    check('xoá lần hai → 404', r.status === 404, `nhận ${r.status}`);
+  }
+
   console.log('\nTệp tĩnh');
   {
     const r = await fetch(BASE + '/');

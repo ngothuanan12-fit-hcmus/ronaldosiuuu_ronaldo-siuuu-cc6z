@@ -65,9 +65,39 @@ export function readJsonBody(req) {
  * @param {Array<{method: string, path: string, handler: Function}>} routes
  * @param {Function} [fallback] xử lý khi không khớp route API nào (phục vụ tệp tĩnh)
  */
+/**
+ * Biên dịch một mẫu đường dẫn thành biểu thức chính quy.
+ * '/api/projects/:id' → khớp '/api/projects/abc' và cho params = { id: 'abc' }
+ */
+function compilePath(pattern) {
+  const names = [];
+  const source = pattern
+    .split('/')
+    .map((segment) => {
+      if (!segment.startsWith(':')) return segment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      names.push(segment.slice(1));
+      return '([^/]+)';
+    })
+    .join('/');
+  return { regex: new RegExp(`^${source}$`), names };
+}
+
 export function createRouter(routes, fallback) {
-  const table = new Map(routes.map((r) => [`${r.method} ${r.path}`, r.handler]));
-  const knownPaths = new Set(routes.map((r) => r.path));
+  const compiled = routes.map((r) => ({ ...r, ...compilePath(r.path) }));
+
+  /** Tìm route khớp. Trả về {handler, params} hoặc lý do không khớp. */
+  function match(method, pathname) {
+    let pathExists = false;
+    for (const route of compiled) {
+      const m = route.regex.exec(pathname);
+      if (!m) continue;
+      pathExists = true;
+      if (route.method !== method) continue;
+      const params = Object.fromEntries(route.names.map((n, i) => [n, decodeURIComponent(m[i + 1])]));
+      return { handler: route.handler, params };
+    }
+    return { handler: null, params: {}, pathExists };
+  }
 
   return async function handle(req, res) {
     let pathname;
@@ -84,15 +114,15 @@ export function createRouter(routes, fallback) {
       return;
     }
 
-    const handler = table.get(`${req.method} ${pathname}`);
+    const { handler, params, pathExists } = match(req.method, pathname);
 
     try {
       if (!handler) {
-        throw knownPaths.has(pathname)
+        throw pathExists
           ? methodNotAllowed(`Đường dẫn ${pathname} không nhận phương thức ${req.method}.`)
           : notFound(`Không có endpoint ${pathname}.`);
       }
-      await handler(req, res);
+      await handler(req, res, params);
     } catch (err) {
       if (err instanceof HttpError) {
         sendJson(res, err.status, {
