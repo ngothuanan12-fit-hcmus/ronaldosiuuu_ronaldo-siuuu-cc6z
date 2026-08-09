@@ -86,19 +86,75 @@ Dán link vào cột `Link`; các cột còn lại điền cùng lúc.
 Các prompt có ảnh hưởng lớn nhất tới sản phẩm — chọn ra sau, khi đã biết prompt nào
 thực sự quyết định. Mỗi mục trỏ về số thứ tự lượt gốc ở mục 4.
 
-### PV1 — lượt #… — `…`
+### PV1 — lượt #24 — `AGENT` — prompt định hình kiến trúc
+
 **Prompt:**
-> …
+> thực hiện mức A chia thành 2 phiên
+> Mình muốn danh sách dự án trống hoàn toàn lúc mở app
+> đồng ý cho /api/projects
+> đây là quyết định đánh đổi về cấu trúc và cách xử lý cốt lõi (ghi lại phần này vào chatlog)
 
-**Vì sao là prompt vàng:** …
-**Nó tạo ra:** …
+**Vì sao là prompt vàng:** bốn dòng ngắn nhưng ra bốn quyết định khác cấp nhau. Dòng 1 chia phạm
+vi theo quỹ thời gian còn lại thay vì ôm hết. Dòng 2 loại bỏ dữ liệu mồi — buộc sản phẩm phải
+chứng minh được nó hoạt động thật khi quay video, không dựa vào dự án dựng sẵn. Dòng 3 cho phép
+máy chủ có trạng thái, mở đường cho **kiến trúc hai tầng trái ngược nhau**: `/api/projects` có
+trạng thái để người dùng không phải nhập lại, `/api/solve` hoàn toàn không trạng thái để mục 3.4
+đề bài được thoả mãn bằng cấu trúc chứ không bằng code dọn cache — *cách chắc chắn nhất để không
+bao giờ hiện kết quả cũ là không có cache nào để dọn*. Dòng 4 biến một lựa chọn kỹ thuật thành
+tài liệu có thể trình bày, đúng phần điểm "giải thích kiến trúc và đánh đổi".
 
-### PV2 — lượt #… — `…`
+**Nó tạo ra:** commit `55b1f80` — 7 endpoint CRUD dự án, bộ định tuyến theo hash 4 tuyến, và mục
+"Quyết định đánh đổi" ở lượt #24 của chatlog cùng mục 6 của README.
+
+### PV2 — lượt #5 — `AGENT` — prompt cứu 20 điểm, và cũng suýt làm mất bài
+
 **Prompt:**
-> …
+> Đây là điều kiện pass/fail của bài thi: một tệp môi trường lọt vào là mất trắng 20 điểm.
+> Viết dư thà hơn thiếu.
 
-**Vì sao là prompt vàng:** …
-**Nó tạo ra:** …
+**Vì sao là prompt vàng:** nó nêu **hậu quả** chứ không nêu yêu cầu. "Viết một `.gitignore` cho
+Node" sẽ ra khoảng 20 dòng mẫu; nêu rõ mất trắng 20 điểm thì ra 274 dòng chia 9 nhóm, chặn cả
+những dạng tệp mà một dự án Node thông thường không có. Nhờ đó, khi API key Google Stitch thật
+bị dán vào `.mcp.json` ở lượt #27 (lỗi **E10**), phản xạ đã có sẵn và khoá không bao giờ chạm
+tới một commit nào.
+
+**Nhưng đây cũng là bài học hai mặt** — và chính vì thế nó đáng đưa vào video. Luật `data/` viết
+để chặn thư mục cơ sở dữ liệu của ORM đã **nuốt luôn `source/data/`**, ba mô-đun mã nguồn chứa
+24 hồ sơ ứng viên, 12 kỹ năng và 3 kịch bản. Suốt hơn ba giờ, bản trên GitHub clone về **không
+chạy được**, trong khi bản trên máy vẫn chạy hoàn hảo nên không script kiểm tra nào phát hiện.
+Xem lỗi **E12**. Bài học: *"viết dư thà hơn thiếu" là đúng với tệp bí mật, nhưng mỗi luật phủ
+định rộng đều phải được kiểm chứng bằng một bản clone sạch, không phải bằng thư mục đang làm việc.*
+
+**Nó tạo ra:** commit `26e2947` (`.gitignore` 274 dòng, tệp đầu tiên của cả dự án, tạo **trước**
+mọi tệp khác) và commit `77ffb61` (ngoại lệ `!source/data/` cùng quy trình kiểm tra bằng clone sạch).
+
+### PV3 — lượt #20 — `REVIEWER` — prompt bắt lỗi mà tác giả không tự thấy
+
+**Prompt:**
+> Đây là lõi thuật toán ghép đội của tôi. Hãy soát giúp, chỉ báo lỗi thật, không đề xuất tái cấu trúc:
+>
+> Có trường hợp nào một phương án vi phạm 1 trong 4 điều kiện mà vẫn lọt qua không?
+> Có nhánh nào có thể lặp vô hạn, hoặc trả về undefined/NaN không?
+> Có bộ dữ liệu nào khiến hàm chấm điểm xếp hạng sai không?
+> Liệt kê 6 ca kiểm thử biên mà tôi nên thử bằng tay.
+> Trả lời bằng danh sách phát hiện, mỗi phát hiện kèm dữ liệu đầu vào cụ thể gây lỗi.
+
+**Vì sao là prompt vàng:** ba kỹ thuật cộng lại. (1) **Dùng một AI thứ hai soát AI thứ nhất** —
+`AGENT` viết thuật toán thì không phải người tốt nhất để tìm lỗi trong chính nó. (2) **Chặn
+trước xu hướng nói chung chung**: "chỉ báo lỗi thật, không đề xuất tái cấu trúc" cắt bỏ loại
+phản hồi vô dụng kiểu "nên tách hàm này ra". (3) **Bắt buộc kèm dữ liệu tái tạo** — biến mọi
+phát hiện thành thứ kiểm chứng được ngay, không phải phỏng đoán.
+
+**Nó tạo ra:** phát hiện lỗi **E8**, một *false negative* trong `solve()` — hệ thống báo "vô
+nghiệm" trong khi thực tế có phương án, vì bước lọc sơ bộ loại bỏ những người tuy không đóng góp
+kỹ năng yêu cầu nhưng lại cần để đội đạt đủ `minTotalHours`. Lỗi này rơi **đúng vào checkpoint 5
+của video demo** (trình bày ca vô nghiệm). Bản vá ở commit `b5f77fd`: ca tái tạo `Security≥2,
+quân số 2–3, ≥60h` chuyển từ "vô nghiệm" sang **55 phương án hợp lệ**.
+
+> **Ứng viên thứ tư** (không chọn vì là ràng buộc quy trình, không sinh ra tính năng): ràng buộc
+> ở lượt #1 rằng commit message không được chứa bất kỳ dấu vết AI nào — không `Co-Authored-By`,
+> không chữ ký công cụ. Áp dụng cho cả 20 commit của phiên, giữ lịch sử git mang đúng một danh
+> tính. Đáng nhắc một câu trong video khi mở `git log`.
 
 ---
 
@@ -119,6 +175,7 @@ cột `Lượt sửa` trỏ tới lượt đã khắc phục.
 | E9 | #22 | `AGENT` | **Agent tự làm hỏng encoding của `solver.js`**: dùng `Get-Content -Raw` (đọc theo ANSI trong PowerShell 5.1) rồi `Set-Content -Encoding UTF8` để sửa một chuỗi → toàn bộ tiếng Việt trong tệp biến thành mojibake (`Lõi` → `LÃµi`), tệp bị thêm BOM | Agent tự kiểm tra ngay sau lệnh: đọc lại tệp bằng `[IO.File]::ReadAllText(..., UTF8)` và khớp mẫu mojibake | Không cần prompt sửa — agent tự phát hiện và khôi phục | Khôi phục bằng cách encode chuỗi mojibake theo codepage 1252 rồi ghi lại dạng byte thô, bỏ BOM. `node --check` PASS, `try-solver.js` chạy lại đủ 8/8 ca biên. **Bài học: không dùng `Get-Content`/`Set-Content` cho tệp UTF-8 tiếng Việt, chỉ dùng công cụ Edit/Write** | #22 |
 | E10 | #27 | — (thí sinh) | **Sự cố bảo mật: API key thật của Google Stitch bị dán trực tiếp vào `.mcp.json`.** Tệp này nằm ở thư mục gốc và **không** bị `.gitignore` chặn tại thời điểm đó, nên chỉ cần một lệnh `git add -A` là khoá lên GitHub công khai — mất 20 điểm và lộ khoá thật | Agent nhận thông báo tệp thay đổi, đọc nội dung và thấy trường `env` chứa chuỗi khoá thật thay vì `${STITCH_API_KEY}` | Không cần prompt sửa — agent dừng việc đang làm và xử lý ngay | Xác minh khoá **chưa lọt vào commit nào**: `git log --all -- .mcp.json` rỗng và `git grep` trên toàn bộ `rev-list --all` không tìm thấy. Đã thêm `.mcp.json` (cùng `mcp.json`, `.cursor/mcp.json`, `.vscode/mcp.json`) vào `.gitignore`, tạo `.mcp.json.example` chỉ chứa placeholder để commit thay thế, cập nhật README. Quét lại mọi tệp đang theo dõi và sắp commit: sạch. **Khuyến nghị vẫn nên thu hồi và cấp lại khoá** vì khoá đã xuất hiện trong nội dung phiên chat mà thí sinh dự định chia sẻ link công khai làm bằng chứng | #27 |
 | E11 | #32 | `STITCH` | **Bản Tailwind xuất từ Stitch được đưa thẳng vào `source/public/`, thay ba tệp `index.html`, `app.js`, `styles.css`.** Bản đó không chạy được với backend: (1) nạp Tailwind qua CDN và hai `@import` Google Fonts → phá tiêu chí 0 phụ thuộc, vỡ giao diện khi mất mạng; (2) `app.js` đọc `meta.skills` và `meta.levels` nhưng `GET /api/meta` trả về `weights`, `componentLabels`, `limits` → ném lỗi ngay lúc khởi động, hiện alert "Không thể kết nối máy chủ"; (3) mất toàn bộ tích hợp `/api/projects`, không còn danh sách dự án, tạo, sửa, xoá, không còn hash routing; (4) sidebar có hai mục là link chết `javascript:void(0)` | Agent nhận thông báo tệp thay đổi, đọc lại cả ba tệp và đối chiếu với hợp đồng API thật của dự án | `thêm sidebar và header giống trong thư mục stitch... cho phù hợp với dự án` | Sửa bản Tailwind cho khớp backend là viết lại lần thứ tư, không kịp trong 36 phút còn lại. Đã **cất bản Tailwind vào thư mục tạm của phiên (không xoá)** và khôi phục ba tệp từ commit `927d36c`, rồi thêm header lên bản đang chạy được. **Bài học: sản phẩm của công cụ sinh giao diện là bản phác thảo thị giác, không phải mã chạy được — phải ráp lớp trình bày vào mã hiện có, không thay thế mã hiện có** | #32 |
+| E12 | #5 | `AGENT` | **`.gitignore` nuốt mất mã nguồn: `source/data/` chưa từng được commit trong suốt hơn 3 giờ.** Luật `data/` ở dòng 65 (viết để chặn thư mục cơ sở dữ liệu của Prisma/Drizzle) khớp với **mọi** thư mục tên `data` ở mọi cấp, nên đã loại luôn ba mô-đun mã nguồn `candidates.js` (24 hồ sơ), `skills.js` (12 kỹ năng), `scenarios.js` (3 kịch bản). Hậu quả: **bản clone từ GitHub không chạy được** — máy chủ ném lỗi thiếu mô-đun ngay khi khởi động. Đây là lỗi nghiêm trọng nhất phiên, vì bài chấm dựa trên repository chứ không dựa trên máy của thí sinh | **Thí sinh phát hiện và báo ở lượt #37.** Không công cụ nào bắt được: `git status` im lặng (tệp bị ignore thì không hiện là untracked), `check-structure.js` đọc **đĩa** nên luôn PASS 32/32, và mọi lần chạy thử đều dùng thư mục làm việc — nơi tệp vẫn tồn tại đầy đủ. Điểm mù: **toàn bộ khâu kiểm chứng đều chạy trên bản local, không lần nào trên bản clone** | `kiểm tra lại trạng thái commit có đủ file chưa, hiện tại đang thiếu file trong thư mục data chưa push` | Thêm ngoại lệ `!source/data/` kèm chú thích giải thích vì sao. Kiểm chứng bằng **quy trình mới, mạnh hơn**: (1) `git check-ignore` từng tệp — cả 3 đều thoát ignore; (2) đối chiếu toàn bộ tệp mã trên đĩa với `git ls-files` — chỉ còn `.mcp.json` nằm ngoài, đúng chủ ý; (3) **clone sạch sang thư mục khác rồi chạy thật**: `try-solver` PASS, `try-api` **45/45 PASS**, `GET /api/candidates` trả 200 kèm dữ liệu ứng viên, trang chủ 200. Remote sau khi sửa có đủ 31 tệp. **Bài học: kiểm tra bằng bản clone sạch, không bao giờ chỉ bằng thư mục đang làm việc** | #37 |
 | E3 | #5 | `AGENT` | Script kiểm tra của agent in nhầm `IGNORED .env.example`, khiến tưởng tệp mẫu bị `.gitignore` chặn | Agent tự soát lại: `git check-ignore -v` in cả luật phủ định nên `if ($output)` bắt sai; kiểm lại bằng exit code | Không cần prompt sửa — agent tự đính chính trong cùng lượt | `.env.example` exit 1 (commit được), `.env` exit 0 (bị chặn). Không phải lỗi `.gitignore`, chỉ là lỗi cách đọc kết quả | #5 |
 
 ---
@@ -442,7 +499,7 @@ bảng đối chiếu với đề thi; danh sách ngoài phạm vi; lịch trìn
 
 **Kết quả:** Ghi bổ sung các lượt #4–#12 vào mục 4; cập nhật mã commit của lượt #3 từ
 _(chờ)_ thành `99facca`; điền hai dòng E1 và E2 vào bảng lỗi ở mục 3.
-**Commit:** _(chờ)_
+**Commit:** `df9dd1a` — phần chatlog của lượt này đi kèm commit tầng dữ liệu lúc 14:58:23
 
 ---
 
@@ -490,7 +547,7 @@ rõ đánh đổi cái gì lấy cái gì. Chưa tạo file nào.
 **Kết quả:** Chốt **phương án A** làm kiến trúc chính thức. Ghi bổ sung lượt #13 và #14 vào
 chatlog. Lập kế hoạch chi tiết chia thành 6 giai đoạn nhỏ, mỗi giai đoạn là một prompt riêng
 có tiêu chí nghiệm thu và lệnh kiểm tra, kèm phân công việc song song cho `REVIEWER` và `DOCS`.
-**Commit:** _(chờ)_
+**Commit:** `df9dd1a` — lượt lập kế hoạch, nội dung chatlog đi kèm commit lúc 14:58:23
 
 ---
 
@@ -508,7 +565,7 @@ có tiêu chí nghiệm thu và lệnh kiểm tra, kèm phân công việc song 
   Frontend 9, Backend 9. Tổng quỹ 432h, trung bình 18h/người.
 - Kịch bản `vo-nghiem` đã xác nhận vô nghiệm sớm: không ai đạt Security mức 3.
 
-**Commit:** _(chờ)_
+**Commit:** `df9dd1a` "Thêm tầng dữ liệu: 12 kỹ năng, 24 hồ sơ ứng viên, 3 kịch bản" — 14:58:23
 
 ---
 
@@ -558,7 +615,7 @@ có tiêu chí nghiệm thu và lệnh kiểm tra, kèm phân công việc song 
 3 phương án / 1.2ms; Vô nghiệm phát hiện ngay ở bước khả thi sớm, 0 tổ hợp / 0.4ms.
 8/8 ca biên PASS — không ca nào ném lỗi, treo, hay trả `undefined`.
 
-**Commit:** _(chờ)_
+**Commit:** `4cb3010` "Thêm lõi thuật toán: duyệt tổ hợp có cắt tỉa, chấm điểm, phương án thay thế" — 15:09:34
 
 ---
 
@@ -579,7 +636,7 @@ có tiêu chí nghiệm thu và lệnh kiểm tra, kèm phân công việc song 
   ~1h40 như agent tưởng. Lịch trình 6 giai đoạn được dời lại: G3 bắt đầu 15:15 thay vì 16:20,
   và đệm cuối tăng từ 3 phút lên khoảng 1 giờ.
 
-**Commit:** _(chờ)_
+**Commit:** `b23e5d5` "Hiệu chỉnh timestamp chatlog theo giờ commit và mtime thật" — 15:14:14
 
 ---
 
@@ -609,7 +666,7 @@ endpoint không tồn tại), và 2 ca tệp tĩnh gồm chặn thoát thư mụ
 **Sai lệch so với kế hoạch:** thêm endpoint thứ tư `GET /api/meta` (trả trọng số chấm điểm
 và các giới hạn an toàn) để giao diện không phải chép cứng con số. Kế hoạch ghi 3 endpoint.
 
-**Commit:** _(chờ)_
+**Commit:** `bd49e53` "Thêm tầng API: 4 endpoint, validate đầu vào, xử lý lỗi tập trung" — 15:18:36
 
 ---
 
@@ -716,7 +773,7 @@ PowerShell round-trip, khôi phục ngay trong lượt.
 
 **Chưa làm:** đoạn mô tả bối cảnh đang là bản agent tự viết, chờ thay bằng bản của `DOCS`.
 
-**Commit:** _(chờ)_
+**Commit:** `b5f77fd` "Thêm giao diện 3 cột và báo cáo giải thích; sửa false negative trong solve()" — 15:42:21
 
 ---
 
@@ -832,7 +889,7 @@ nên đang phục vụ bản v1. Sau khi dừng tiến trình cũ, mọi endpoin
 **Còn lại cho phiên 2:** tách không gian làm việc thành 3 tab (Tổng quan · Ứng viên · Đội hình),
 bảng ứng viên sắp xếp được, trang chốt đội hình in được, trạng thái rỗng/đang tải chi tiết hơn.
 
-**Commit:** _(chờ)_
+**Commit:** `55b1f80` "Xây lại thành ứng dụng nhiều trang: quản lý dự án có trạng thái" — 16:06:14
 
 ---
 
@@ -903,7 +960,7 @@ exit code 0.
 chưa xác nhận**. Nếu con số thật khác, sửa một dòng trong `submission.json` và một hằng số trong
 `scripts/check-structure.js`.
 
-**Commit:** _(chờ)_
+**Commit:** `53a3b8f` "Chuyển submission.json sang schema phẳng và hoàn thiện README" — 16:30:27
 
 ---
 
@@ -939,7 +996,7 @@ báo `stitch-mcp-server` là gói bên thứ ba.
 **Kiểm chứng:** `npm run check` vẫn **32 PASS / 0 FAIL**; `.mcp.json` exit 0 (bị chặn),
 `.mcp.json.example` exit 1 (commit được).
 
-**Commit:** _(chờ)_
+**Commit:** `8daae0e` "Chặn .mcp.json khỏi repository và thêm bản mẫu không chứa khoá" — 16:40:58
 
 ---
 
@@ -988,7 +1045,7 @@ Dựng thanh điều hướng dẫn tới các trang không tồn tại là làm
 đều có định nghĩa trong CSS (kiểm tra tự động, không sót class nào); `try:api` 45 PASS / 0 FAIL;
 `check-structure` PASS 32/32.
 
-**Commit:** _(chờ)_
+**Commit:** `5a96fa4` "Áp dụng hệ thiết kế Stitch: chuyển giao diện sang chủ đề sáng" — 16:57:53
 
 ---
 
@@ -1023,7 +1080,7 @@ không còn class `.topbar`/`.footer` mồ côi trong CSS lẫn HTML; tải th�
 `/app.js` đều 200 và HTML trả về có đúng 3 `nav-item`; `try:api` 45 PASS / 0 FAIL;
 không tệp frontend nào tham chiếu ra mạng ngoài.
 
-**Commit:** _(chờ)_
+**Commit:** `927d36c` "Thêm thanh điều hướng dọc theo bố cục Stitch, chỉ với các mục có thật" — 17:05:09
 
 ---
 
@@ -1047,7 +1104,7 @@ không tệp frontend nào tham chiếu ra mạng ngoài.
 
 **Kiểm chứng:** Không sử dụng build step (không npm run build), ứng dụng vẫn chạy tĩnh như yêu cầu ban đầu. Kết nối API thành công.
 
-**Commit:** _(chờ)_
+**Commit:** — **không có commit nào.** Bản Tailwind sinh ra ở lượt này không chạy được với backend và đã bị hoàn tác ở lượt #32; xem lỗi **E11** ở mục 3
 
 ---
 
@@ -1062,7 +1119,7 @@ không tệp frontend nào tham chiếu ra mạng ngoài.
 - Avatar profile picture không gọi trực tiếp URL ảnh ngoài mạng, mà sử dụng thẻ div vẽ vòng tròn chứa chữ cái đầu tiên (vd "A" cho Admin) để tuân thủ luật 0 dependencies tải từ bên ngoài.
 - Javascript event binding vẫn chạy chính xác dựa trên class và id cũ.
 
-**Commit:** _(chờ)_
+**Commit:** — **không có commit nào.** Cùng lý do với lượt #30; xem lỗi **E11** ở mục 3
 
 ---
 
@@ -1113,7 +1170,7 @@ số dự án ở bảng điều khiển và tên dự án khi đang làm việc
 mạng ngoài; máy chủ chạy trên cổng thay thế 3222 trả 200, HTML có `appbar`, đúng 3 `nav-item`,
 không còn `context__note`; `try:api` 45 PASS / 0 FAIL; `check-structure` PASS 32/32.
 
-**Commit:** _(chờ)_
+**Commit:** `b0b288e` "Sửa giao diện theo phản hồi thị giác: form tạo dự án, bỏ nút trùng lặp" — 17:35:48
 
 ---
 
@@ -1141,8 +1198,97 @@ và việc không lọc theo thông tin nhạy cảm.
 ba tệp; mọi class đều có định nghĩa CSS; máy chủ chạy trên cổng 3223 trả 200, HTML có đúng
 2 `nav-item` và không còn `id="context"`; `try:api` 45 PASS / 0 FAIL.
 
-**Commit:** _(chờ)_
+**Commit:** `45a77f5` "Gỡ tính năng Bối cảnh khỏi giao diện [#34]" — 17:39:08
 
 ---
 
-<!-- Lượt tiếp theo: #35 -->
+### #35 — 17:43 — `AGENT` — ACCEPTED
+
+**Prompt:** _(kèm ảnh chụp màn hình)_
+> sửa lại giao diện ghép đội cho giống với hình 2 tham khảo code html trong
+> kh_ng_gian_l_m_vi_c_i_h_nh_t_i_u
+
+**Kết quả:** Dựng lại toàn bộ báo cáo đội hình theo bố cục bản Stitch, nhưng **viết bằng CSS
+thuần trên cấu trúc dữ liệu có thật của backend** — không sao chép Tailwind, rút kinh nghiệm E11.
+
+- Báo cáo chuyển từ một khối dọc sang **hai cột song song** trong `.result-split`: bảng phủ kỹ
+  năng bên trái, thẻ thành viên bên phải, phần "vì sao phương án này" trải hết chiều ngang bên dưới.
+- Bảng phủ kỹ năng thành **bảng 4 cột thật**: trạng thái · kỹ năng kèm mức tối thiểu · người phụ
+  trách chính · người dự phòng. Trước đó là danh sách gạch đầu dòng khó đối chiếu.
+- Thẻ thành viên có **chữ cái đầu của tên làm ảnh đại diện** (hàm `initial()`), không tải ảnh từ
+  mạng ngoài.
+
+**Kiểm chứng:** `node --check` PASS; mọi class có định nghĩa CSS; không tham chiếu mạng ngoài;
+máy chủ trả 200; `try:api` 45 PASS / 0 FAIL.
+
+**Commit:** `0138766` "Dựng lại báo cáo đội hình theo bản thiết kế Stitch [#35]" — 17:48:25
+
+---
+
+### #36 — 17:50 — `AGENT` — ACCEPTED
+
+**Prompt:** _(kèm ảnh chụp màn hình)_
+> thu nhỏ cột phân bổ vai trò và mở rộng cột yêu cầu kỹ năng để không bị cắt chữ,
+> thêm màu sắc trực quan cho giao diện dựa vào code.html trong thư mục
+> kh_ng_gian_l_m_vi_c_i_h_nh_t_i_u
+
+**Kết quả:** Lượt sửa theo phản hồi thị giác — bảng 4 cột dựng ở lượt #35 bị cắt chữ vì cột trái
+quá hẹp.
+
+- Đổi tỉ lệ `.result-split` từ `minmax(280px, 1fr) / minmax(320px, 1.5fr)` sang
+  **`minmax(440px, 1.75fr) / minmax(240px, 1fr)`** — đảo ưu tiên về phía bảng kỹ năng.
+- Ép `.rcard .member-grid` về một cột để thẻ thành viên xếp dọc gọn trong cột hẹp.
+- Ô trạng thái đổi từ chip chữ sang **dấu ✓ xanh rộng 28px**; tên kỹ năng `nowrap`; tên người phụ
+  trách in đậm nằm riêng dòng, các chip xuống dưới; mỗi người dự phòng một dòng.
+- **Màu phân biệt:** vạch 3px trên đầu mỗi thẻ — xanh lá cho *Yêu cầu kỹ năng*, xanh đen cho
+  *Phân bổ vai trò*, vàng cho *Đánh giá tối ưu*. Thêm chip xám `.pill--lvl` cho nhãn mức thành thạo.
+
+**Kiểm chứng:** `node --check` PASS; mọi class có định nghĩa CSS; không tham chiếu mạng ngoài;
+máy chủ cổng 3225 trả 200; `try:api` 45 PASS / 0 FAIL. Một cảnh báo mojibake xuất hiện khi quét
+`workspace.js` nhưng **là báo nhầm** — biểu thức quét quá thô; quét lại chính xác cho 0 kết quả.
+
+**Commit:** `cb73474` "Cân lại tỉ lệ hai cột báo cáo và thêm màu phân biệt [#35]" — 17:53:43
+_(nhãn trong commit ghi `[#35]` do gộp nhầm với lượt trước; nội dung thuộc lượt #36 — ghi lại
+đúng ở đây thay vì sửa lịch sử git.)_
+
+---
+
+### #37 — 18:07 — `AGENT` — ACCEPTED
+
+**Prompt:**
+> kiểm tra lại trạng thái commit có đủ file chưa, hiện tại đang thiếu file trong thư mục data
+> chưa push, chọn promt vàng và hoàn thành chatlog
+>
+> (tiếp theo) bỏ .mcp.json vì không sử dụng
+
+**Kết quả:** Lượt rà soát cuối, và là lượt phát hiện **lỗi nghiêm trọng nhất của cả phiên**.
+
+**a) `source/data/` chưa từng được commit — xem lỗi E12.** Thí sinh nghi ngờ đúng. `git ls-files
+source/data` trả về rỗng; `git check-ignore -v` chỉ thẳng thủ phạm là `.gitignore:65: data/`.
+Bản trên GitHub suốt hơn 3 giờ **clone về không chạy được**. Đã thêm ngoại lệ `!source/data/`
+kèm chú thích, và quan trọng hơn là **thay đổi cách kiểm chứng**: từ giờ phải clone sạch rồi
+chạy thật, vì mọi công cụ chạy trên thư mục làm việc đều mù trước loại lỗi này.
+
+**b) Rà soát toàn bộ tệp bị bỏ sót.** Đối chiếu mọi tệp `.js/.json/.html/.css/.md` trên đĩa với
+`git ls-files`: ngoài ba tệp `source/data/`, chỉ còn `.mcp.json` nằm ngoài — đúng chủ ý.
+
+**c) Gỡ cấu hình MCP.** Theo yêu cầu, xoá `.mcp.json` (xác minh lại lần cuối: chưa từng vào
+commit nào) và gỡ `.mcp.json.example` khỏi repository. Mục README về công cụ thiết kế viết lại
+thành một đoạn ngắn nêu rõ Stitch chỉ dùng ở giai đoạn *thiết kế*, còn sản phẩm bàn giao **không
+còn tệp cấu hình MCP nào, không đọc API key nào, chạy được khi ngắt mạng hoàn toàn**. Các luật
+`.gitignore` chặn `.mcp.json` **vẫn giữ** để phòng tệp chứa khoá được tạo lại về sau.
+
+**d) Hoàn thiện chatlog.** Điền 16 dòng `**Commit:**` còn treo `_(chờ)_` bằng mã commit thật đối
+chiếu theo giờ trong `git log` (hai lượt #30 và #31 ghi rõ **không có commit** vì bản Tailwind đã
+bị hoàn tác). Chọn và viết **ba prompt vàng** ở mục 2. Thêm lỗi **E12** vào bảng mục 3.
+
+**Kiểm chứng:** `check-structure` PASS 32/32; `try-solver` toàn bộ ca biên PASS; **clone sạch
+sang thư mục tạm rồi chạy thật** — `try-api` 45 PASS / 0 FAIL, `GET /api/candidates` trả 200 kèm
+dữ liệu ứng viên, trang chủ 200. Remote sau khi push có đủ 31 tệp, `source/data/` đã có mặt.
+
+**Commit:** `77ffb61` "Sửa .gitignore nuốt mất source/data và gỡ cấu hình MCP không dùng [#37]"
+— 18:10:51, đã push. Lượt chatlog này được commit riêng sau đó.
+
+---
+
+<!-- Lượt tiếp theo: #38 -->
