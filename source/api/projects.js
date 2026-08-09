@@ -17,7 +17,6 @@
 
 import { randomUUID } from 'node:crypto';
 
-import { scenarios } from '../data/scenarios.js';
 import { sendJson, readJsonBody } from './router.js';
 import { badRequest, notFound } from './http-error.js';
 import { validateProject } from './validation.js';
@@ -73,18 +72,6 @@ export function listProjects(req, res) {
   sendJson(res, 200, { projects: items, total: items.length });
 }
 
-/** Ba mẫu dựng sẵn. KHÔNG nằm trong danh sách dự án — chỉ dùng khi được chọn. */
-export function listTemplates(req, res) {
-  sendJson(res, 200, {
-    templates: scenarios.map((s) => ({
-      id: s.id,
-      label: s.label,
-      hint: s.hint,
-      project: s.project,
-    })),
-  });
-}
-
 export async function createProject(req, res) {
   const body = await readJsonBody(req);
   const input = body.project ?? body;
@@ -137,7 +124,6 @@ export function deleteProject(req, res, params) {
 export const projectRoutes = [
   { method: 'GET', path: '/api/projects', handler: listProjects },
   { method: 'POST', path: '/api/projects', handler: createProject },
-  { method: 'GET', path: '/api/templates', handler: listTemplates },
   { method: 'GET', path: '/api/projects/:id', handler: getProject },
   { method: 'PUT', path: '/api/projects/:id', handler: updateProject },
   { method: 'PATCH', path: '/api/projects/:id', handler: updateProject },

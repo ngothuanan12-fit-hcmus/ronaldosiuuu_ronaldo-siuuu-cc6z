@@ -154,7 +154,7 @@ try {
     check('danh sách khởi tạo RỖNG', r.status === 200 && r.json?.total === 0, `nhận total=${r.json?.total}`);
 
     r = await call('GET', '/api/templates');
-    check('có 3 mẫu dựng sẵn (tách khỏi danh sách dự án)', r.json?.templates?.length === 3);
+    check('endpoint mẫu đã gỡ bỏ → 404', r.status === 404, `nhận ${r.status}`);
 
     r = await call('POST', '/api/projects', { project: { name: '' } });
     check('tạo dự án không tên → 400', r.status === 400, `nhận ${r.status}`);

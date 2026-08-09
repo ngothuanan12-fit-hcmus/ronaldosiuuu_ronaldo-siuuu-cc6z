@@ -65,10 +65,9 @@ async function render() {
     }
 
     if (name === 'create' || name === 'edit') {
-      const templates = name === 'create' ? (await api('/api/templates')).templates : [];
       const project = name === 'edit' ? (await api(`/api/projects/${encodeURIComponent(id)}`)).project : null;
-      view.innerHTML = renderProjectForm({ project, templates, skills: store.skills });
-      bindProjectForm(view, { project, templates, skills: store.skills });
+      view.innerHTML = renderProjectForm({ project, skills: store.skills });
+      bindProjectForm(view, { project });
       return;
     }
 

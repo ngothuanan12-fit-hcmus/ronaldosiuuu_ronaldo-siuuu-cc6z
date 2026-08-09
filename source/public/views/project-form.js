@@ -16,26 +16,9 @@ function blank() {
   };
 }
 
-export function renderProjectForm({ project, templates, skills }) {
+export function renderProjectForm({ project, skills }) {
   const isEdit = Boolean(project);
   draft = project ? JSON.parse(JSON.stringify(project)) : blank();
-
-  const templateBar = !isEdit && templates.length
-    ? `<section class="panel">
-        <div class="panel__head"><h2>Bắt đầu từ mẫu <small>(tuỳ chọn)</small></h2></div>
-        <div class="panel__body">
-          <p class="hint">Mẫu chỉ điền sẵn các ô bên dưới. Bạn vẫn sửa được mọi thứ trước khi lưu.</p>
-          <div class="scenario-list">
-            ${templates
-              .map(
-                (t) => `<button type="button" class="scenario" data-template="${esc(t.id)}">
-                  <b>${esc(t.label)}</b><span>${esc(t.hint)}</span></button>`
-              )
-              .join('')}
-          </div>
-        </div>
-      </section>`
-    : '';
 
   return `<div class="page page--narrow">
     <div class="page__head">
@@ -45,8 +28,6 @@ export function renderProjectForm({ project, templates, skills }) {
       </div>
       <a class="btn btn--ghost btn--sm" href="${isEdit ? `#/du-an/${encodeURIComponent(project.id)}` : '#/'}">Huỷ</a>
     </div>
-
-    ${templateBar}
 
     <form id="project-form" novalidate>
       <section class="panel">
@@ -162,23 +143,10 @@ function showErrors(root, list) {
   box.scrollIntoView({ block: 'nearest' });
 }
 
-export function bindProjectForm(root, { project, templates }) {
+export function bindProjectForm(root, { project }) {
   paintForm(root);
 
   root.addEventListener('click', (e) => {
-    const tpl = e.target.closest('[data-template]');
-    if (tpl) {
-      const found = templates.find((t) => t.id === tpl.dataset.template);
-      if (found) {
-        draft = { ...JSON.parse(JSON.stringify(found.project)), disabledCandidates: [] };
-        draft.constraints.mustInclude ??= [];
-        draft.constraints.mustExclude ??= [];
-        paintForm(root);
-        showErrors(root, []);
-      }
-      return;
-    }
-
     const rm = e.target.closest('[data-remove]');
     if (rm) {
       draft.requiredSkills.splice(Number(rm.dataset.remove), 1);
