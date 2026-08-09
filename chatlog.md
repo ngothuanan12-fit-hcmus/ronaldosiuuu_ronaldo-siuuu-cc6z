@@ -991,4 +991,39 @@ Dựng thanh điều hướng dẫn tới các trang không tồn tại là làm
 
 ---
 
-<!-- Lượt tiếp theo: #29 -->
+### #29 — 17:00 — `AGENT` — ACCEPTED
+
+**Prompt:**
+> sửa lại giao diện theo html mẫu nhưng vẫn phải phù hợp với dự án
+> mình muốn có sidebar, tôi dựng được với các mục thật: Dự án · Dự án mới · Bối cảnh
+> đã push trạng thái trước
+
+**Kết quả:** Dựng thanh điều hướng dọc theo bố cục bản Stitch, nhưng **chỉ với các mục có thật**.
+
+- `index.html` — thay thanh trên bằng khung `.shell` hai cột: `<aside class="sidebar">` và
+  vùng nội dung. Sidebar gồm: khối thương hiệu, thẻ ngữ cảnh "Ban tổ chức · SPD Challenge 2026",
+  ba mục điều hướng (Dự án · Dự án mới · Bối cảnh), và chân sidebar hiển thị thông tin động cơ
+  cùng tên đội. Bỏ hẳn `<footer>` vì nội dung đã chuyển vào chân sidebar.
+- **Icon vẽ bằng SVG nội tuyến**, `stroke-width: 1.75`, chỉ nét không tô — đúng quy tắc
+  "Icons" trong `DESIGN.md`. Không dùng thư viện icon nào.
+- `app.js` — thêm `markNav()` đánh dấu mục đang mở, gọi ở đầu mỗi lần render. Tuyến `edit` và
+  `workspace` cùng thuộc nhóm "Dự án". Mục "Bối cảnh" là nút bật/tắt, sáng lên khi khối bối
+  cảnh đang mở.
+- `styles.css` — thay toàn bộ khối `.topbar` bằng khối sidebar; bổ sung `.avatar`,
+  `.sidebar__card`, `.nav-item` cùng trạng thái `--active`; dưới 900px sidebar tự chuyển thành
+  thanh ngang. Cập nhật quy tắc `@media print` cho khung mới.
+
+**Ba mục điều hướng đều dẫn tới nơi có thật.** Bản Stitch có 5 mục (Dashboard, Team Discovery,
+Candidate Pool, Project Setup, Evaluation) nhưng sản phẩm không có những trang đó, nên không
+sao chép — dựng menu dẫn tới trang không tồn tại là làm giao diện giả.
+
+**Kiểm chứng:** `node --check` PASS; mọi class dùng trong HTML/JS đều có định nghĩa trong CSS;
+không còn class `.topbar`/`.footer` mồ côi trong CSS lẫn HTML; tải thử `/`, `/styles.css`,
+`/app.js` đều 200 và HTML trả về có đúng 3 `nav-item`; `try:api` 45 PASS / 0 FAIL;
+không tệp frontend nào tham chiếu ra mạng ngoài.
+
+**Commit:** _(chờ)_
+
+---
+
+<!-- Lượt tiếp theo: #30 -->

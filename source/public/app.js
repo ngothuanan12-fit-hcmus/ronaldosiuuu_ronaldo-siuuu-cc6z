@@ -52,8 +52,22 @@ function showError(message, hint) {
   </div>`;
 }
 
+/** Đánh dấu mục điều hướng đang mở. 'edit' và 'workspace' đều thuộc nhóm Dự án. */
+function markNav(viewName) {
+  const group = viewName === 'create' ? 'create' : 'dashboard';
+  for (const el of document.querySelectorAll('[data-nav]')) {
+    const active = el.dataset.nav === group;
+    el.classList.toggle('nav-item--active', active);
+    if (el.tagName === 'A') {
+      if (active) el.setAttribute('aria-current', 'page');
+      else el.removeAttribute('aria-current');
+    }
+  }
+}
+
 async function render() {
   const { view: name, id } = parseHash();
+  markNav(name);
   view.innerHTML = '<p class="empty">Đang tải…</p>';
 
   try {
@@ -87,10 +101,12 @@ async function render() {
 /* ══════════════════ Khởi động ══════════════════ */
 
 async function init() {
-  document.getElementById('btn-context').addEventListener('click', (e) => {
+  const contextBtn = document.getElementById('btn-context');
+  contextBtn.addEventListener('click', () => {
     const box = document.getElementById('context');
     box.hidden = !box.hidden;
-    e.currentTarget.setAttribute('aria-expanded', String(!box.hidden));
+    contextBtn.setAttribute('aria-expanded', String(!box.hidden));
+    contextBtn.classList.toggle('nav-item--active', !box.hidden);
   });
 
   window.addEventListener('hashchange', render);

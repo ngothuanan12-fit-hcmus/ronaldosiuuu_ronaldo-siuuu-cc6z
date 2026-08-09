@@ -7,52 +7,88 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <header class="topbar">
-      <a class="topbar__brand" href="#/">
-        <span class="logo">SF</span>
-        <div>
-          <strong>SquadFit</strong>
-          <span class="tagline">Ghép đội hackathon sinh viên theo ràng buộc đa biến</span>
+    <div class="shell">
+      <!-- ═══════════════ Thanh điều hướng dọc ═══════════════ -->
+      <aside class="sidebar">
+        <a class="sidebar__brand" href="#/">
+          <span class="logo">SF</span>
+          <span>
+            <strong>SquadFit</strong>
+            <span class="tagline">Ghép đội theo ràng buộc</span>
+          </span>
+        </a>
+
+        <div class="sidebar__card">
+          <span class="avatar">BT</span>
+          <span>
+            <strong>Ban tổ chức</strong>
+            <span class="sidebar__card-sub">SPD Challenge 2026</span>
+          </span>
         </div>
-      </a>
-      <nav class="topbar__nav">
-        <button type="button" class="btn btn--ghost btn--sm" id="btn-context" aria-expanded="false">
-          Bối cảnh
-        </button>
-        <a class="btn btn--sm" href="#/du-an/moi">+ Dự án mới</a>
-      </nav>
-    </header>
 
-    <section class="context" id="context" hidden>
-      <div class="context__grid">
-        <p>
-          <strong>Người dùng:</strong> thành viên ban tổ chức một hackathon sinh viên, phụ trách
-          phân đội cho hàng chục sinh viên đăng ký lẻ.
-        </p>
-        <p>
-          <strong>Vấn đề:</strong> ghép đội thủ công dễ để lọt những nhiệm vụ không ai làm được,
-          và không giải thích được vì sao chọn người này thay vì người kia.
-        </p>
-        <p>
-          <strong>SquadFit làm gì:</strong> duyệt mọi tổ hợp ứng viên hợp lệ trên máy chủ, xếp
-          hạng, và giải thích ai đảm nhận yêu cầu nào — hoặc chỉ ra chính xác đang thiếu năng lực
-          gì khi không có phương án nào.
-        </p>
+        <nav class="sidebar__nav" aria-label="Điều hướng chính">
+          <a class="nav-item" href="#/" data-nav="dashboard">
+            <svg class="nav-item__icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" rx="1.5" />
+              <rect x="14" y="3" width="7" height="7" rx="1.5" />
+              <rect x="3" y="14" width="7" height="7" rx="1.5" />
+              <rect x="14" y="14" width="7" height="7" rx="1.5" />
+            </svg>
+            Dự án
+          </a>
+
+          <a class="nav-item" href="#/du-an/moi" data-nav="create">
+            <svg class="nav-item__icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            Dự án mới
+          </a>
+
+          <button type="button" class="nav-item" id="btn-context" aria-expanded="false" aria-controls="context">
+            <svg class="nav-item__icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 16v-4M12 8h.01" />
+            </svg>
+            Bối cảnh
+          </button>
+        </nav>
+
+        <div class="sidebar__foot">
+          <p class="hint" id="engine-note"></p>
+          <p class="hint">Đội <strong>ronaldosiuuu</strong> · SPD Challenge 2026</p>
+        </div>
+      </aside>
+
+      <!-- ═══════════════ Vùng nội dung ═══════════════ -->
+      <div class="main">
+        <section class="context" id="context" hidden>
+          <div class="context__grid">
+            <p>
+              <strong>Người dùng:</strong> thành viên ban tổ chức một hackathon sinh viên, phụ
+              trách phân đội cho hàng chục sinh viên đăng ký lẻ.
+            </p>
+            <p>
+              <strong>Vấn đề:</strong> ghép đội thủ công dễ để lọt những nhiệm vụ không ai làm
+              được, và không giải thích được vì sao chọn người này thay vì người kia.
+            </p>
+            <p>
+              <strong>SquadFit làm gì:</strong> duyệt mọi tổ hợp ứng viên hợp lệ trên máy chủ,
+              xếp hạng, và giải thích ai đảm nhận yêu cầu nào — hoặc chỉ ra chính xác đang thiếu
+              năng lực gì khi không có phương án nào.
+            </p>
+          </div>
+          <p class="context__note">
+            Dữ liệu ứng viên là dữ liệu giả lập minh bạch. Hệ thống không lưu và không cho phép
+            lọc theo bất kỳ thông tin nhạy cảm nào (dân tộc, tôn giáo, quan điểm chính trị,
+            giới tính).
+          </p>
+        </section>
+
+        <main id="view" class="view" aria-live="polite">
+          <p class="empty">Đang tải…</p>
+        </main>
       </div>
-      <p class="context__note">
-        Dữ liệu ứng viên là dữ liệu giả lập minh bạch. Hệ thống không lưu và không cho phép lọc
-        theo bất kỳ thông tin nhạy cảm nào (dân tộc, tôn giáo, quan điểm chính trị, giới tính).
-      </p>
-    </section>
-
-    <main id="view" class="view" aria-live="polite">
-      <p class="empty">Đang tải…</p>
-    </main>
-
-    <footer class="footer">
-      <span>Đội <strong>ronaldosiuuu</strong> · SPD Challenge 2026</span>
-      <span id="engine-note"></span>
-    </footer>
+    </div>
 
     <script type="module" src="/app.js"></script>
   </body>
