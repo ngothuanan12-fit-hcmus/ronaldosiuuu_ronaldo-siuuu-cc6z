@@ -833,4 +833,38 @@ bảng ứng viên sắp xếp được, trang chốt đội hình in được, 
 
 ---
 
-<!-- Lượt tiếp theo: #25 -->
+### #25 — 16:10 — `AGENT` — ACCEPTED
+
+**Prompt:**
+> bỏ mẫu tùy chọn, phần này sẽ được người thực hiện quay video tự thực hiện, nêu lại các kịch bản
+> dễ, khó, vô nghiệm trong chat
+> viết thêm promt để tạo diện trên stitch theo nhiều phong cách khác nhau theo chuẩn thiết kế
+
+**Kết quả:**
+
+**a) Gỡ tính năng mẫu dựng sẵn.** Bỏ khối "Bắt đầu từ mẫu" trong `views/project-form.js`, bỏ
+tham số `templates` khỏi `app.js`, và **gỡ luôn endpoint `GET /api/templates`** cùng hàm
+`listTemplates` thay vì để lại mã chết. Dữ liệu ba kịch bản vẫn nằm ở `source/data/scenarios.js`
+phục vụ `scripts/try-solver.js` và `GET /api/scenarios` để đối chiếu số liệu.
+Ca kiểm thử đổi từ "có 3 mẫu" thành "endpoint mẫu đã gỡ bỏ → 404". `try:api` 45 PASS / 0 FAIL.
+
+**b) Nêu lại ba kịch bản trong chat** kèm toàn bộ giá trị cần nhập và kết quả mong đợi để người
+quay video đối chiếu: Dễ (Frontend≥2, Backend≥2, UI/UX≥1 · 3–5 người · ≥50h → 6.610 tổ hợp,
+4.914 hợp lệ, 73.71 điểm) · Khó (Mobile≥3, Security≥2, Backend≥3, Thuyết trình≥2 · 3–4 người ·
+≥80h · ≥1 người trình bày → 68 tổ hợp, đúng 3 phương án) · Vô nghiệm (Security≥3, DevOps≥2,
+Backend≥2 → dừng ở bước khả thi sớm, 0 tổ hợp).
+Kèm gợi ý quay CP4 mà không cần kịch bản thứ tư: nâng tổng giờ tối thiểu từ 50 lên 200 để thấy
+hệ thống chuyển từ "có kết quả" sang "vô nghiệm" ngay lập tức.
+
+**c) Soạn bộ prompt cho Google Stitch:** một prompt nền mô tả 5 màn hình cần thiết kế kèm ràng
+buộc kỹ thuật (HTML/CSS thuần, không font hay CDN từ mạng ngoài, responsive, tiếng Việt) và
+khối chuẩn thiết kế (thang khoảng cách bội số 4, thang cỡ chữ 6 bậc tỉ lệ 1.2, tương phản
+WCAG AA, màu ngữ nghĩa không chỉ phân biệt bằng màu, vùng bấm tối thiểu 32×32); cộng **4 biến
+thể phong cách**: công cụ kỹ thuật nền tối · Material 3 nền sáng · ấn phẩm Thuỵ Sĩ tối giản ·
+bề mặt mềm nền sáng ấm.
+
+**Commit:** `7ad01f9` — Gỡ tính năng mẫu dựng sẵn khỏi form tạo dự án [#25]
+
+---
+
+<!-- Lượt tiếp theo: #26 -->
