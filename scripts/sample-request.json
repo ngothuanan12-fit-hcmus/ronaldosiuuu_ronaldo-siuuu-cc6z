@@ -1,0 +1,18 @@
+{
+  "project": {
+    "name": "Đề bài: Nền tảng đặt lịch khám bệnh",
+    "description": "Ứng dụng web cho phép bệnh nhân tìm phòng khám, xem lịch trống và đặt hẹn trực tuyến.",
+    "requiredSkills": [
+      { "skill": "Frontend", "minLevel": 2 },
+      { "skill": "Backend", "minLevel": 2 },
+      { "skill": "UI/UX Design", "minLevel": 1 }
+    ],
+    "teamSize": { "min": 3, "max": 5 },
+    "constraints": {
+      "minTotalHours": 50,
+      "mustInclude": [],
+      "mustExclude": [],
+      "minPresenters": 0
+    }
+  }
+}

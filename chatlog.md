@@ -578,4 +578,34 @@ có tiêu chí nghiệm thu và lệnh kiểm tra, kèm phân công việc song 
 
 ---
 
-<!-- Lượt tiếp theo: #19 -->
+### #19 — 15:15 — `AGENT` — ACCEPTED
+
+**Prompt:**
+> chạy G3
+
+**Kết quả:** Thực hiện giai đoạn G3 — tầng API. Tạo và sửa:
+- `source/api/http-error.js` — lớp `HttpError` cho mã trạng thái + thông báo tiếng Việt.
+  Tầng domain không bao giờ ném loại lỗi này vì domain không biết HTTP tồn tại.
+- `source/api/router.js` — khớp method + đường dẫn, đọc body JSON có **giới hạn 1 MB**,
+  bắt mọi lỗi. Lỗi ngoài dự kiến ghi log phía máy chủ và trả 500 chung, **không lộ stack trace**.
+- `source/api/handlers.js` — 4 endpoint, hàm `validateProject()` và `validateCandidates()`
+  kiểm tra từng trường và trả về danh sách lỗi chi tiết. Không có một dòng logic nghiệp vụ nào.
+- `source/server.js` — viết lại: chỉ dựng server, nối router, phục vụ tệp tĩnh. Có lưới an
+  toàn cuối cùng để không yêu cầu nào bị treo.
+- `scripts/try-api.js` — tự khởi động máy chủ ở cổng 3111, chạy 30 ca kiểm thử, rồi tắt.
+- `scripts/sample-request.json` — body mẫu để gọi bằng `curl`.
+- `package.json` — thêm `npm run try:solver` và `npm run try:api`.
+
+**Kết quả chạy `npm run try:api`: 30 PASS / 0 FAIL.** Bao gồm: 3 endpoint GET, giải hợp lệ,
+giải vô nghiệm (trả 200 kèm `diagnosis` chứ không phải lỗi 500), 8 ca đầu vào sai
+(thiếu `project`, sai kiểu, kỹ năng bịa, JSON hỏng, body rỗng, id trùng, sai method,
+endpoint không tồn tại), và 2 ca tệp tĩnh gồm chặn thoát thư mục.
+
+**Sai lệch so với kế hoạch:** thêm endpoint thứ tư `GET /api/meta` (trả trọng số chấm điểm
+và các giới hạn an toàn) để giao diện không phải chép cứng con số. Kế hoạch ghi 3 endpoint.
+
+**Commit:** _(chờ)_
+
+---
+
+<!-- Lượt tiếp theo: #20 -->
