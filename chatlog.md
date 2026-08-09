@@ -113,11 +113,30 @@ cột `Lượt sửa` trỏ tới lượt đã khắc phục.
 | E4 | #17 | `AGENT` | Công thức "độ dư thừa phủ kỹ năng" ban đầu chỉ chấm đạt/không đạt (có ≥2 người là 1 điểm), khiến **cả 3 phương án đứng đầu bằng đúng 80.47 điểm** — báo cáo giải thích không nói được vì sao #1 hơn #2 | Chạy `node scripts/try-solver.js`, đọc kết quả kịch bản "Dễ": ba đội chỉ khác nhau đúng một người mà cùng điểm | Không cần prompt sửa — agent tự phát hiện khi đọc output và sửa trong cùng lượt | Đổi sang thang phân bậc, kết hợp lấy trung bình 2 mức cao nhất thay vì 1 | #17 |
 | E5 | #17 | `AGENT` | Bản vá E4 lần 1 (thang tuyến tính `(count-1)/2`) gây **hồi quy**: thuật toán bắt đầu ưu tiên dồn 2 người dự phòng vào một kỹ năng thay vì phủ đều — phương án đứng đầu có Backend **không có dự phòng nào** | Chạy lại `try-solver.js`, thấy phương án #1 hiển thị "Backend: KHÔNG có dự phòng" mà vẫn xếp trên | Không cần prompt sửa — agent tự phát hiện ngay ở lần chạy kế tiếp | Đổi sang thang 0 / 0.8 / 1.0 có bước nhảy lớn ở người dự phòng đầu tiên → phủ đều luôn thắng dồn cục bộ | #17 |
 | E6 | #17 | `AGENT` | Khi `requiredSkills` rỗng, bước lọc sơ bộ loại sạch ứng viên (vì không ai "đóng góp kỹ năng yêu cầu") → hệ thống báo vô nghiệm sai, đáng lẽ mọi đội hình đều hợp lệ | Ca biên "Không khai báo năng lực nào" trong `try-solver.js` trả về "vô nghiệm" thay vì "ok" | Không cần prompt sửa — ca biên do chính agent viết đã bắt được | Thêm điều kiện: chưa khai báo năng lực nào thì không có căn cứ loại ai, giữ nguyên toàn bộ pool | #17 |
+| E7 | #6–#17 | `AGENT` | **Timestamp trong chatlog bị lệch tới hơn 1 giờ.** Agent suy giờ từ *lịch trình kế hoạch* thay vì đọc đồng hồ hệ thống, nên mỗi lượt bị ghi muộn hơn thực tế. Lượt #17 ghi "≈15:20" trong khi commit thật là 15:09:34. Đây là lỗi nghiêm trọng vì ban tổ chức đối chiếu timestamp chatlog với lịch sử commit để phát hiện can thiệp thủ công | Thí sinh phát hiện và báo ở lượt #18. Agent xác minh bằng `Get-Date`, `git log --date=format:%H:%M:%S` và `LastWriteTime` của từng tệp | `thời gian thực tế đang bị lệch, xem xét lại thời gian và ghi lại lỗi vào chatlog` | Đã hiệu chỉnh timestamp của 10 lượt (#6, #7, #8, #10–#15, #17) theo mốc commit và mtime tệp thật. Từ lượt #18 trở đi, agent đọc đồng hồ hệ thống trước khi ghi mỗi lượt | #18 |
 | E3 | #5 | `AGENT` | Script kiểm tra của agent in nhầm `IGNORED .env.example`, khiến tưởng tệp mẫu bị `.gitignore` chặn | Agent tự soát lại: `git check-ignore -v` in cả luật phủ định nên `if ($output)` bắt sai; kiểm lại bằng exit code | Không cần prompt sửa — agent tự đính chính trong cùng lượt | `.env.example` exit 1 (commit được), `.env` exit 0 (bị chặn). Không phải lỗi `.gitignore`, chỉ là lỗi cách đọc kết quả | #5 |
 
 ---
 
 ## 4. Lịch sử lượt
+
+> **Đính chính timestamp — thực hiện lúc 15:12 tại lượt #18.**
+> Timestamp của các lượt #6, #7, #8, #10, #11, #12, #13, #14, #15 và #17 ban đầu bị ghi
+> muộn hơn thực tế tới hơn 1 giờ, do agent suy giờ từ lịch trình kế hoạch thay vì đọc đồng
+> hồ hệ thống (lỗi **E7** ở mục 3). Các giờ này **đã được hiệu chỉnh tại chỗ** theo ba nguồn
+> bằng chứng khách quan, kiểm tra lại được bất cứ lúc nào:
+>
+> | Nguồn | Lệnh |
+> |---|---|
+> | Giờ commit thật | `git log --format="%h %ad %s" --date=format:"%H:%M:%S"` |
+> | Giờ sửa tệp thật | `Get-ChildItem -Recurse -File \| Sort-Object LastWriteTime` |
+> | Giờ hệ thống | `Get-Date -Format "HH:mm:ss K"` |
+>
+> Mốc neo: `26e2947` 14:02:53 · `99facca` 14:30:47 · `df9dd1a` 14:58:23 · `4cb3010` 15:09:34.
+>
+> Giờ có dấu `≈` là **ước lượng** suy từ mtime của tệp mà lượt đó tạo ra, sai số dưới 3 phút.
+> Giờ không có dấu `≈` là giờ thí sinh cung cấp trực tiếp trong prompt, hoặc giờ hệ thống đọc
+> tại thời điểm ghi. Từ lượt #18 trở đi, agent đọc đồng hồ hệ thống trước khi ghi mỗi lượt.
 
 ### #1 — 14:01 — `AGENT` — ACCEPTED
 
@@ -286,7 +305,7 @@ mất 20 điểm. Yêu cầu kèm lệnh kiểm tra tệp bị theo dõi nhầm 
 
 ---
 
-### #6 — ≈14:17 — `AGENT` — NO-CODE
+### #6 — ≈14:19 — `AGENT` — NO-CODE
 
 **Prompt:** _(tóm tắt)_ Gửi kèm hai tài liệu: prompt chấm công khai phần Cấu trúc Project
 (SPD Challenge 2026) và đề thi chính thức dạng PDF (chủ đề Team-Matching dựa trên ràng buộc
@@ -306,7 +325,7 @@ mất 20 điểm. Yêu cầu kèm lệnh kiểm tra tệp bị theo dõi nhầm 
 
 ---
 
-### #7 — ≈14:20 — `AGENT` — ACCEPTED
+### #7 — ≈14:22 — `AGENT` — ACCEPTED
 
 **Prompt:** _(tóm tắt)_ Xác nhận đổi `src/` → `source/` và chốt bối cảnh ghép đội hackathon
 sinh viên. Yêu cầu `README.md` có đủ bảy mục bắt buộc (tên và mô tả ngắn; bài toán; tính năng
@@ -327,7 +346,7 @@ thì để chỗ trống rõ ràng kèm ghi chú. Tiếng Việt.
 
 ---
 
-### #8 — ≈14:24 — `AGENT` — ACCEPTED
+### #8 — ≈14:26 — `AGENT` — ACCEPTED
 
 **Prompt:** _(tóm tắt)_ Viết script Node.js chạy bằng một lệnh, kiểm tra 9 nhóm điều kiện
 pass/fail của hệ thống chấm và in PASS/FAIL cho từng điều kiện kèm đường dẫn gây lỗi: tên thư
@@ -375,7 +394,7 @@ khi đẩy xong cho lệnh xác nhận repository công khai và clone được 
 
 ---
 
-### #10 — ≈14:34 — `AGENT` — NO-CODE
+### #10 — ≈14:32 — `AGENT` — NO-CODE
 
 **Prompt:**
 > mình đã push xong, bạn kiểm tra lại trạng thái một lần nữa
@@ -393,7 +412,7 @@ khi đẩy xong cho lệnh xác nhận repository công khai và clone được 
 
 ---
 
-### #11 — ≈14:40 — `AGENT` — NO-CODE
+### #11 — ≈14:36 — `AGENT` — NO-CODE
 
 **Prompt:**
 > đặc tả lại đầy đủ bối cảnh dự án chuẩn bị thực hiện
@@ -411,7 +430,7 @@ bảng đối chiếu với đề thi; danh sách ngoài phạm vi; lịch trìn
 
 ---
 
-### #12 — ≈14:46 — `AGENT` — ACCEPTED
+### #12 — ≈14:41 — `AGENT` — ACCEPTED
 
 **Prompt:**
 > bổ sung chatlog nãy giờ thực hiện
@@ -422,7 +441,7 @@ _(chờ)_ thành `99facca`; điền hai dòng E1 và E2 vào bảng lỗi ở m�
 
 ---
 
-### #13 — ≈14:52 — `AGENT` — NO-CODE
+### #13 — ≈14:45 — `AGENT` — NO-CODE
 
 **Prompt:** _(tóm tắt)_ Gửi lại toàn văn bản đặc tả SquadFit làm nguồn tham chiếu duy nhất,
 kèm ràng buộc của thí sinh: ngân sách 3 giờ 15 đã trừ debug; toàn bộ code do AI sinh; **phải
@@ -457,7 +476,7 @@ rõ đánh đổi cái gì lấy cái gì. Chưa tạo file nào.
 
 ---
 
-### #14 — ≈15:00 — `AGENT` — ACCEPTED
+### #14 — ≈14:50 — `AGENT` — ACCEPTED
 
 **Prompt:**
 > mình duyệt phương án A và ghi lại thêm chatlog, lên kế hoạch chi tiết để thực hiện chứ không
@@ -470,7 +489,7 @@ có tiêu chí nghiệm thu và lệnh kiểm tra, kèm phân công việc song 
 
 ---
 
-### #15 — ≈15:08 — `AGENT` — ACCEPTED
+### #15 — ≈14:54 — `AGENT` — ACCEPTED
 
 **Prompt:**
 > chạy G1
@@ -512,7 +531,7 @@ có tiêu chí nghiệm thu và lệnh kiểm tra, kèm phân công việc song 
 
 ---
 
-### #17 — ≈15:20 — `AGENT` — ACCEPTED
+### #17 — ≈14:59 — `AGENT` — ACCEPTED
 
 **Prompt:**
 > chạy G2
@@ -538,4 +557,25 @@ có tiêu chí nghiệm thu và lệnh kiểm tra, kèm phân công việc song 
 
 ---
 
-<!-- Lượt tiếp theo: #18 -->
+### #18 — 15:12 — `AGENT` — ACCEPTED
+
+**Prompt:**
+> thời gian thực tế đang bị lệch, xem xét lại thời gian và ghi lại lỗi vào chatlog
+
+**Kết quả:**
+- Đọc đồng hồ hệ thống: **15:12:26 +07:00**. Agent trước đó tưởng đang là ~16:20 — **lệch 68 phút**.
+- Xác minh bằng 3 nguồn: giờ commit (`git log`), mtime của 19 tệp, và `Get-Date`.
+- Hiệu chỉnh timestamp 10 lượt: #6 14:17→14:19, #7 14:20→14:22, #8 14:24→14:26,
+  #10 14:34→14:32, #11 14:40→14:36, #12 14:46→14:41, #13 14:52→14:45, #14 15:00→14:50,
+  #15 15:08→14:54, #17 **15:20→14:59**.
+- Thêm khối "Đính chính timestamp" ở đầu mục 4, ghi rõ nguồn bằng chứng và cách kiểm tra lại.
+- Ghi lỗi **E7** vào bảng mục 3.
+- **Hệ quả tích cực:** quỹ thời gian còn lại là **2h48** tới mốc đóng băng 18:00, không phải
+  ~1h40 như agent tưởng. Lịch trình 6 giai đoạn được dời lại: G3 bắt đầu 15:15 thay vì 16:20,
+  và đệm cuối tăng từ 3 phút lên khoảng 1 giờ.
+
+**Commit:** _(chờ)_
+
+---
+
+<!-- Lượt tiếp theo: #19 -->
