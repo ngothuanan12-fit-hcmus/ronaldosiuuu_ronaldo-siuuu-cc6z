@@ -23,6 +23,7 @@ Múi giờ dùng cho mọi timestamp trong tệp này: **UTC+07:00**
   | `AGENT` | Claude Code (Opus 5) | Agent chính, sinh toàn bộ mã nguồn | IDE (VS Code) |
   | `REVIEWER` | AI phụ #1 | Review code, soát lỗi | Browser |
   | `DOCS` | Claude Opus 4.6 (Thinking) — AI phụ #2 | Soạn tài liệu, README, slide, kịch bản video | IDE (VS Code) |
+  | `STITCH` | Google Stitch | Sinh bản thiết kế giao diện (5 màn hình + DESIGN.md) | Web app |
 
   Nếu dùng thêm AI khác, khai báo thêm một dòng vào bảng này trước khi ghi lượt đầu tiên của nó.
 
@@ -941,4 +942,53 @@ báo `stitch-mcp-server` là gói bên thứ ba.
 
 ---
 
-<!-- Lượt tiếp theo: #28 -->
+### #28 — 16:45 — `AGENT` + `STITCH` — ACCEPTED
+
+**Prompt:**
+> mình đã thêm lại API mới, dùng giao diện đã tạo trên stitch để áp dụng lại cho hệ thống
+>
+> (tiếp theo) các giao diện cần thiết đã thêm trong thư mục stitch_squadfit_optimization_interface,
+> mình áp dụng hướng A
+
+**Kết quả:**
+
+**a) Xác nhận không dùng được MCP trong phiên này.** Agent tra danh sách công cụ đang có —
+không có công cụ nào của Stitch. Claude Code đọc `.mcp.json` lúc khởi động, mà tệp này được tạo
+sau khi phiên đã chạy; phiên lại là non-interactive nên không chạy được luồng phê duyệt. Agent
+nêu hai đường đi và thí sinh chọn **hướng A**: tự sinh thiết kế trên Stitch rồi đưa tệp cho agent.
+
+**b) Nhận 5 màn hình thiết kế** trong `E:\SPD\thi\stitch_squadfit_optimization_interface\`
+(nằm ngoài thư mục bài nộp, không commit): bảng điều khiển trạng thái rỗng · bảng điều khiển
+3 dự án · form tạo dự án · không gian làm việc đội hình tối ưu · không gian làm việc vô nghiệm.
+Kèm `DESIGN.md` chứa đầy đủ token màu, thang chữ tỉ lệ 1.2, thang khoảng cách 4px, quy tắc bo góc,
+độ cao và thành phần.
+
+**c) Ba nhóm phụ thuộc phải gỡ trước khi ráp** — bản Stitch dùng: Tailwind qua CDN,
+Google Fonts (Material Symbols), và ảnh avatar tải từ máy chủ ảnh của Google. Bài nộp bắt buộc
+0 phụ thuộc và chạy offline, nên cả ba đều bị loại: viết lại bằng CSS thuần, dùng font hệ thống,
+thay avatar bằng chữ cái đầu tên tô nền.
+
+**d) Viết lại `source/public/styles.css`** theo hệ thiết kế Stitch, **không đụng một dòng
+HTML hay JavaScript nào**. Chuyển từ chủ đề tối sang chủ đề sáng "Corporate / Utility-First":
+nền `#f8fafc`, thẻ trắng viền `#e2e8f0`, màu chính `#1e293b`; độ cao thể hiện bằng viền và lớp
+nền chứ không dùng đổ bóng; bo góc 4px cho thành phần, 6px cho khối chứa, 2px cho chỉ báo chọn;
+khoảng cách bội số 4px; bảng dòng cao 40px có sọc nhẹ và đầu bảng chữ đậm; mọi số liệu dùng
+`tabular-nums`. Bổ sung quy tắc `@media print` để trang kết quả in được.
+
+**Một chỗ phải xử lý khéo:** khối thống kê trong `workspace.js` có markup `<b>số</b> nhãn`,
+trong khi thiết kế cần nhãn ở trên và số ở dưới. Giải bằng `flex-direction: column-reverse`
+thay vì sửa JavaScript — giữ nguyên nguyên tắc chỉ thay lớp trình bày.
+
+**Đã CỐ Ý không sao chép:** thanh điều hướng dọc bên trái của bản Stitch, vì nó liệt kê 5 mục
+(Dashboard, Team Discovery, Candidate Pool, Project Setup, Evaluation) mà sản phẩm **không có**.
+Dựng thanh điều hướng dẫn tới các trang không tồn tại là làm giao diện giả.
+
+**Kiểm chứng:** không tệp frontend nào tham chiếu ra mạng ngoài; mọi class dùng trong HTML/JS
+đều có định nghĩa trong CSS (kiểm tra tự động, không sót class nào); `try:api` 45 PASS / 0 FAIL;
+`check-structure` PASS 32/32.
+
+**Commit:** _(chờ)_
+
+---
+
+<!-- Lượt tiếp theo: #29 -->
