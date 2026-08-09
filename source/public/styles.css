@@ -196,6 +196,38 @@ a:hover { text-decoration: underline; }
   .sidebar__nav { grid-auto-flow: column; margin-left: auto; }
 }
 
+/* ─────────────────────────── Header vùng nội dung ─────────────────────────── */
+
+.appbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  min-height: 64px;
+  padding: 12px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.appbar__title { display: grid; gap: 2px; min-width: 0; }
+.appbar__eyebrow {
+  font-size: 0.694rem;
+  font-weight: 600;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.appbar h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: -0.01em; }
+.appbar__actions { display: flex; align-items: center; gap: 12px; }
+.appbar__actions .badge { max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
+
+/* Trang bên trong đã có tiêu đề riêng, nên bỏ h1 lặp lại trong .page__head */
+.appbar + .context + .view .page__head h1,
+.appbar + .view .page__head h1 { font-size: 1.44rem; }
+
 /* ─────────────────────────── Khối bối cảnh ─────────────────────────── */
 
 .context {

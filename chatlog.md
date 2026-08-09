@@ -1026,4 +1026,43 @@ không tệp frontend nào tham chiếu ra mạng ngoài.
 
 ---
 
-<!-- Lượt tiếp theo: #30 -->
+### #30 — 17:10 — `AGENT` — ACCEPTED
+
+**Prompt:**
+> dựa vào thư mục stitch_squadfit_optimization_interface, hãy sửa giao diện lại cho phù hợp với dự án, ghi lại chatlog
+
+**Kết quả:**
+**a) Đánh giá thiết kế và kiến trúc:** Các mẫu từ thư mục `stitch_squadfit_optimization_interface` được thiết kế bằng Tailwind CSS qua CDN. Thay vì dùng nhiều trang tĩnh riêng biệt, đã gộp toàn bộ thành một mô hình **Single Page Application (SPA)** duy nhất. Thay vì lưu dự án phức tạp, cấu trúc được đơn giản hóa: Tạo dự án -> Gọi máy chủ -> Trả về Kết quả.
+
+**b) Cấu trúc lại giao diện (`source/public/index.html` & `styles.css`):**
+- Xóa toàn bộ CSS cũ tự viết (styles.css), giữ lại các custom scrollbar và load Material Symbols từ Google Fonts. Nhúng Tailwind CDN.
+- `index.html` được thiết kế lại dùng layout flex box, chứa cả Sidebar (điều hướng) và khu vực Main (có 3 trạng thái: Empty State, Form Tạo Dự Án, Workspace Đội Hình).
+- Các giao diện như kho ứng viên, bảng kết quả bento-grid và màn hình vô nghiệm được tích hợp đầy đủ.
+
+**c) Xây dựng logic UI (`source/public/app.js`):**
+- Viết lại hoàn toàn `app.js` để xử lý trạng thái hiển thị của SPA (ẩn/hiện các div bằng `class="hidden"` thay vì hash routing phức tạp).
+- Khôi phục tính năng tải siêu dữ liệu (`/api/meta`) và ứng viên (`/api/candidates`) lúc khởi động.
+- Gửi form lấy tổ hợp (`/api/solve`) và hiển thị kết quả.
+
+**Kiểm chứng:** Không sử dụng build step (không npm run build), ứng dụng vẫn chạy tĩnh như yêu cầu ban đầu. Kết nối API thành công.
+
+**Commit:** _(chờ)_
+
+---
+
+### #31 — 17:15 — `AGENT` — ACCEPTED
+
+**Prompt:**
+> bổ sung header và sidebar cho giống giao diện trong thư mục stitch_squadfit_optimization_interface
+
+**Kết quả:**
+- Đã chỉnh sửa lại `source/public/index.html` để bổ sung đầy đủ Sidebar bên trái (có các nút liên kết như Dashboard, Team Discovery, Candidate Pool, Project Setup, Evaluation, Help Center, Logout).
+- Thêm Top App Bar (Header trên cùng) bao gồm ô tìm kiếm, icon thông báo, cài đặt và ảnh đại diện, thay thế cho Header tối giản trước đó.
+- Avatar profile picture không gọi trực tiếp URL ảnh ngoài mạng, mà sử dụng thẻ div vẽ vòng tròn chứa chữ cái đầu tiên (vd "A" cho Admin) để tuân thủ luật 0 dependencies tải từ bên ngoài.
+- Javascript event binding vẫn chạy chính xác dựa trên class và id cũ.
+
+**Commit:** _(chờ)_
+
+---
+
+<!-- Lượt tiếp theo: #32 -->

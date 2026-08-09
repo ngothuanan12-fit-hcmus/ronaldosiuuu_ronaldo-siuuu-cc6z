@@ -52,6 +52,22 @@ function showError(message, hint) {
   </div>`;
 }
 
+const APPBAR_TITLES = {
+  dashboard: { eyebrow: 'Tổng quan', heading: 'Dự án của bạn' },
+  create: { eyebrow: 'Bước 1', heading: 'Tạo dự án mới' },
+  edit: { eyebrow: 'Chỉnh sửa', heading: 'Sửa yêu cầu dự án' },
+  workspace: { eyebrow: 'Không gian làm việc', heading: 'Ghép đội' },
+  notfound: { eyebrow: 'Lỗi', heading: 'Không tìm thấy trang' },
+};
+
+/** Cập nhật header theo trang đang mở. */
+function setAppbar(viewName, status) {
+  const t = APPBAR_TITLES[viewName] ?? APPBAR_TITLES.dashboard;
+  document.getElementById('appbar-eyebrow').textContent = t.eyebrow;
+  document.getElementById('appbar-heading').textContent = t.heading;
+  document.getElementById('appbar-status').textContent = status ?? '—';
+}
+
 /** Đánh dấu mục điều hướng đang mở. 'edit' và 'workspace' đều thuộc nhóm Dự án. */
 function markNav(viewName) {
   const group = viewName === 'create' ? 'create' : 'dashboard';
@@ -68,11 +84,13 @@ function markNav(viewName) {
 async function render() {
   const { view: name, id } = parseHash();
   markNav(name);
+  setAppbar(name);
   view.innerHTML = '<p class="empty">Đang tải…</p>';
 
   try {
     if (name === 'dashboard') {
       const { projects } = await api('/api/projects');
+      setAppbar(name, projects.length === 0 ? 'chưa có dự án' : `${projects.length} dự án`);
       view.innerHTML = renderDashboard(projects);
       bindDashboard(view, render);
       return;
@@ -87,6 +105,7 @@ async function render() {
 
     if (name === 'workspace') {
       const { project } = await api(`/api/projects/${encodeURIComponent(id)}`);
+      setAppbar(name, project.name);
       view.innerHTML = renderWorkspace(project, store.candidates);
       bindWorkspace(view, project, store.candidates);
       return;
